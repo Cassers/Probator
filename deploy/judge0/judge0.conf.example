@@ -1,0 +1,32 @@
+# Judge0 CE configuration. Copy to judge0.conf and fill in the secrets.
+# Full reference: https://github.com/judge0/judge0/blob/master/judge0.conf
+
+################################################################################
+# Postgres (used by Judge0 internally — NOT the Probator app database)
+################################################################################
+POSTGRES_HOST=db
+POSTGRES_PORT=5432
+POSTGRES_DB=judge0
+POSTGRES_USER=judge0
+POSTGRES_PASSWORD=CHANGE_ME_pg
+
+################################################################################
+# Redis
+################################################################################
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_PASSWORD=CHANGE_ME_redis
+
+################################################################################
+# Server / limits — keep these modest for a teaching judge
+################################################################################
+# Optional API auth: if set, Probator must send X-Auth-Token with this value.
+# AUTHN_HEADER=X-Auth-Token
+# AUTHZ_HEADER=X-Auth-User
+# AUTH_TOKEN=CHANGE_ME_token
+
+MAX_CPU_TIME_LIMIT=15
+MAX_WALL_TIME_LIMIT=20
+MAX_MEMORY_LIMIT=512000
+ALLOW_ENABLE_NETWORK=false
+ENABLE_WAIT_RESULT=true
