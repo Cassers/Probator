@@ -10,24 +10,26 @@ Exceeded / Compilation Error**.
 ## Arquitectura
 
 ```
-SvelteKit (frontend + API)            Postgres                 Judge0 CE (Docker)
+SvelteKit (frontend + API)            Postgres                 Piston (Docker)
  ├─ Editor CodeMirror                  ├─ problems              motor de ejecución
- ├─ Lista de problemas                 ├─ test_cases            aislada (isolate)
- └─ POST /api/submit ───────────────►  └─ submissions  ──HTTP─► corre + compara
-        graba veredicto                                          stdout vs esperado
+ ├─ Lista de problemas                 ├─ test_cases            aislada (cgroup v2)
+ └─ POST /api/submit ───────────────►  └─ submissions  ──HTTP─► corre el código;
+        compara stdout vs esperado                              Probator compara
+        graba veredicto                                          la salida
 ```
 
 - **App** (este repo): SvelteKit + Drizzle ORM. Licencia MIT.
-- **Motor**: [Judge0 CE](https://github.com/judge0/judge0) self-hosted (GPLv3,
-  aislado tras su API HTTP — no afecta la licencia de este código).
+- **Motor**: [Piston](https://github.com/engineer-man/piston) self-hosted. Ejecuta
+  el código; **Probator** compara la salida (Piston no compara). Ver
+  `docs/ENGINE.md` (incluye por qué Piston y no Judge0).
 
 ## Desarrollo local
 
-Requisitos: Node 20+, **pnpm** (nunca npm), Postgres 16/17, y un Judge0 accesible.
+Requisitos: Node 20+, **pnpm** (nunca npm), Postgres 16/17, y un Piston accesible.
 
 ```bash
 pnpm install
-cp .env.example .env          # ajusta DATABASE_URL y JUDGE0_URL
+cp .env.example .env          # ajusta DATABASE_URL y PISTON_URL
 pnpm db:push                  # crea las tablas
 pnpm db:seed                  # carga 3 problemas de ejemplo
 pnpm dev
@@ -35,18 +37,16 @@ pnpm dev
 
 App en http://localhost:5173.
 
-## Levantar Judge0 (OVH / Docker)
+## Levantar el motor (Piston)
 
 ```bash
-cd deploy/judge0
-cp judge0.conf.example judge0.conf   # pon REDIS_PASSWORD y POSTGRES_PASSWORD
-docker compose up -d db redis
+cd deploy/piston
 docker compose up -d
-curl http://localhost:2358/languages # debe responder JSON
+./install-languages.sh               # python 3.12, gcc 10.2 (c/c++), java 15.0.2
+curl http://127.0.0.1:2000/api/v2/runtimes
 ```
 
-Luego apunta `JUDGE0_URL` en `.env` a esa instancia. Ver `docs/JUDGE0.md` para
-los detalles de cgroups/kernel.
+Luego apunta `PISTON_URL` en `.env` a esa instancia. Ver `docs/ENGINE.md`.
 
 ## Modelo de datos
 
@@ -66,4 +66,4 @@ los detalles de cgroups/kernel.
 ## Stack
 
 SvelteKit 2 · Svelte 5 · Drizzle ORM · Postgres · CodeMirror 6 · Tailwind 4 ·
-Judge0 CE
+Piston

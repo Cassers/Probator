@@ -22,5 +22,5 @@ Thumbs.db
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-# Judge0 secrets (deploy)
-deploy/judge0/judge0.conf
+# Piston runtime data (deploy)
+deploy/piston/data/

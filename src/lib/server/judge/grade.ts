@@ -1,13 +1,12 @@
 import type { Language } from '$lib/judge/languages';
 import type { TestCase } from '$lib/server/db/schema';
-import { createBatch, pollBatch, STATUS, type Judge0Submission } from './judge0';
+import { execute, type PistonResponse } from './piston';
 
 export interface CaseResult {
 	ordinal: number;
 	isSample: boolean;
-	status: string; // human-readable Judge0 status
+	status: string;
 	passed: boolean;
-	timeMs: number | null;
 	// Only populated for sample cases, so hidden tests stay hidden.
 	stdin?: string;
 	expectedOutput?: string;
@@ -24,11 +23,40 @@ export interface GradeResult {
 	cases: CaseResult[];
 }
 
+/** How many test cases to run against Piston at once. */
+const CONCURRENCY = 4;
+
 /**
- * Run `source` against every test case and reduce to a single verdict.
- * Judge0 itself compares stdout to expected_output (trailing whitespace
- * trimmed server-side), so a case "passes" iff its status is Accepted.
+ * Normalize program output for comparison: strip trailing whitespace on each
+ * line and drop trailing blank lines. This is the usual lenient policy so a
+ * stray final newline doesn't fail an otherwise-correct answer.
  */
+function normalize(s: string): string {
+	return s
+		.replace(/\r\n/g, '\n')
+		.split('\n')
+		.map((line) => line.replace(/[ \t]+$/, ''))
+		.join('\n')
+		.replace(/\n+$/, '');
+}
+
+/** Classify a single Piston execution against its expected output. */
+function classify(res: PistonResponse, expected: string): { status: string; passed: boolean } {
+	if (res.compile && res.compile.code !== 0) {
+		return { status: 'Compilation Error', passed: false };
+	}
+	const run = res.run;
+	if (run.signal === 'SIGKILL') {
+		// Piston kills on run_timeout (or memory) — surface as TLE for a course.
+		return { status: 'Time Limit Exceeded', passed: false };
+	}
+	if (run.code !== 0) {
+		return { status: 'Runtime Error', passed: false };
+	}
+	const passed = normalize(run.stdout) === normalize(expected);
+	return { status: passed ? 'Accepted' : 'Wrong Answer', passed };
+}
+
 export async function grade(opts: {
 	language: Language;
 	source: string;
@@ -37,66 +65,80 @@ export async function grade(opts: {
 	memoryLimitKb: number;
 }): Promise<GradeResult> {
 	const { language, source, cases, timeLimitMs, memoryLimitKb } = opts;
-
 	const ordered = [...cases].sort((a, b) => a.ordinal - b.ordinal);
-	const subs: Judge0Submission[] = ordered.map((tc) => ({
-		source_code: source,
-		language_id: language.judge0Id,
-		stdin: tc.stdin,
-		expected_output: tc.expectedOutput,
-		cpu_time_limit: timeLimitMs / 1000,
-		memory_limit: memoryLimitKb
-	}));
 
-	const tokens = await createBatch(subs);
-	const results = await pollBatch(tokens);
+	// Run a single case first: if it's a compile error, every case would be —
+	// bail early and report the compiler message once.
+	const first = await runCase(ordered[0]);
+	if (first.res.compile && first.res.compile.code !== 0) {
+		return {
+			verdict: 'Compilation Error',
+			passedCount: 0,
+			totalCount: ordered.length,
+			runtimeMs: null,
+			compileOutput: first.res.compile.stderr || first.res.compile.output || 'Compilation error',
+			cases: []
+		};
+	}
 
-	let maxTimeMs: number | null = null;
-	let compileOutput: string | null = null;
-	const caseResults: CaseResult[] = results.map((r, i) => {
-		const tc = ordered[i];
-		const timeMs = r.time != null ? Math.round(parseFloat(r.time) * 1000) : null;
-		if (timeMs != null) maxTimeMs = Math.max(maxTimeMs ?? 0, timeMs);
-		if (r.status.id === STATUS.COMPILATION_ERROR && !compileOutput) {
-			compileOutput = r.compile_output ?? r.message ?? 'Compilation error';
-		}
-		const passed = r.status.id === STATUS.ACCEPTED;
+	const rest = await mapPool(ordered.slice(1), CONCURRENCY, runCase);
+	const all = [first, ...rest];
+
+	const caseResults: CaseResult[] = all.map(({ tc, res, verdict }) => {
 		const base: CaseResult = {
 			ordinal: tc.ordinal,
 			isSample: tc.isSample,
-			status: r.status.description,
-			passed,
-			timeMs
+			status: verdict.status,
+			passed: verdict.passed
 		};
 		if (tc.isSample) {
 			base.stdin = tc.stdin;
 			base.expectedOutput = tc.expectedOutput;
-			base.stdout = r.stdout ?? '';
-			base.stderr = r.stderr ?? '';
+			base.stdout = res.run.stdout;
+			base.stderr = res.run.stderr;
 		}
 		return base;
 	});
 
 	const passedCount = caseResults.filter((c) => c.passed).length;
-	const verdict = computeVerdict(results, passedCount, caseResults.length);
+	const verdict =
+		passedCount === caseResults.length
+			? 'Accepted'
+			: (caseResults.find((c) => !c.passed)?.status ?? 'Wrong Answer');
 
 	return {
 		verdict,
 		passedCount,
 		totalCount: caseResults.length,
-		runtimeMs: maxTimeMs,
-		compileOutput,
+		runtimeMs: null,
+		compileOutput: null,
 		cases: caseResults
 	};
+
+	async function runCase(tc: TestCase) {
+		const res = await execute({
+			language: language.piston.language,
+			version: language.piston.version,
+			fileName: language.fileName,
+			source,
+			stdin: tc.stdin,
+			runTimeoutMs: timeLimitMs,
+			runMemoryBytes: memoryLimitKb > 0 ? memoryLimitKb * 1024 : -1
+		});
+		return { tc, res, verdict: classify(res, tc.expectedOutput) };
+	}
 }
 
-/** Overall verdict: Accepted only if every case is; else the first failure reason. */
-function computeVerdict(
-	results: { status: { id: number; description: string } }[],
-	passedCount: number,
-	total: number
-): string {
-	if (passedCount === total) return 'Accepted';
-	const firstBad = results.find((r) => r.status.id !== STATUS.ACCEPTED);
-	return firstBad?.status.description ?? 'Wrong Answer';
+/** Run `fn` over `items` with at most `limit` in flight, preserving order. */
+async function mapPool<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+	const results: R[] = new Array(items.length);
+	let next = 0;
+	async function worker() {
+		while (next < items.length) {
+			const i = next++;
+			results[i] = await fn(items[i]);
+		}
+	}
+	await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+	return results;
 }

@@ -47,7 +47,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		});
 	} catch (e) {
 		console.error('[submit] judge error', e);
-		throw error(502, 'El motor de ejecución (Judge0) no respondió');
+		throw error(502, 'El motor de ejecución (Piston) no respondió');
 	}
 
 	await db.insert(submissions).values({

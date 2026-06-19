@@ -1,0 +1,24 @@
+# Piston — code execution engine for Probator.
+# Runs untrusted student code in an isolated sandbox. Requires a cgroup v2 host
+# (which is the default on modern Linux / systemd 256+).
+#
+# Quick start:
+#   docker compose up -d
+#   # install the language runtimes Probator uses:
+#   ./install-languages.sh
+#   curl http://127.0.0.1:2000/api/v2/runtimes
+#
+# SECURITY: bound to 127.0.0.1 so it is NOT exposed to the internet. The app
+# reaches it over localhost (or the internal Docker network in production).
+services:
+  piston:
+    image: ghcr.io/engineer-man/piston:latest
+    container_name: piston_api
+    restart: always
+    privileged: true # Piston manages its own cgroup v2 sandbox
+    ports:
+      - '127.0.0.1:2000:2000'
+    volumes:
+      - ./data:/piston
+    tmpfs:
+      - /tmp:exec
