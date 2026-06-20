@@ -45,6 +45,18 @@
 				return;
 			}
 			result = await res.json();
+			
+			// Auto-update the list so you don't have to refresh
+			data.submissions = [{
+				id: Date.now(), // dummy ID for the list
+				language: langKey,
+				sourceCode: source,
+				verdict: result.verdict,
+				passedCount: result.passedCount,
+				totalCount: result.totalCount,
+				runtimeMs: result.runtimeMs,
+				createdAt: new Date()
+			}, ...data.submissions];
 		} catch {
 			errorMsg = 'No se pudo contactar al servidor';
 		} finally {
