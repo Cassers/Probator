@@ -1,0 +1,42 @@
+# Production stack for Probator (deployed via Dokploy as a Compose service).
+# app + piston + postgres share this network: the app reaches them by name
+# (postgres:5432, piston:2000). Nothing is published publicly except the app,
+# which Dokploy routes to via Traefik (it injects the domain labels).
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: probator
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-probator}
+      POSTGRES_DB: probator
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+
+  piston:
+    image: ghcr.io/engineer-man/piston:latest
+    privileged: true # Piston manages its own cgroup v2 sandbox
+    volumes:
+      # Reuse languages already installed on the host (python/c/c++/java).
+      - /opt/piston/data:/piston
+    tmpfs:
+      - /tmp:exec
+    restart: always
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgres://probator:${POSTGRES_PASSWORD:-probator}@postgres:5432/probator
+      PISTON_URL: http://piston:2000
+      SEED: '1'
+    depends_on:
+      - postgres
+      - piston
+    expose:
+      - '3000'
+    restart: always
+
+volumes:
+  pgdata:

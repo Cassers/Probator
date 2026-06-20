@@ -1,4 +1,4 @@
-import { PISTON_URL } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 
 /**
  * Minimal Piston client. We talk to a self-hosted Piston over HTTP; it runs
@@ -7,9 +7,13 @@ import { PISTON_URL } from '$env/static/private';
  *
  * One request runs one program against one stdin. Compiled languages compile
  * on every call (fine for a teaching judge with few test cases).
+ *
+ * dynamic/private so PISTON_URL is read at runtime (Docker env), not baked in.
  */
 
-const base = PISTON_URL.replace(/\/+$/, '');
+function baseUrl(): string {
+	return (env.PISTON_URL ?? 'http://localhost:2000').replace(/\/+$/, '');
+}
 
 export interface PistonStage {
 	stdout: string;
@@ -38,7 +42,7 @@ export interface ExecuteOpts {
 }
 
 export async function execute(opts: ExecuteOpts): Promise<PistonResponse> {
-	const res = await fetch(`${base}/api/v2/execute`, {
+	const res = await fetch(`${baseUrl()}/api/v2/execute`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({
@@ -59,7 +63,7 @@ export async function execute(opts: ExecuteOpts): Promise<PistonResponse> {
 
 export async function health(): Promise<boolean> {
 	try {
-		const res = await fetch(`${base}/api/v2/runtimes`);
+		const res = await fetch(`${baseUrl()}/api/v2/runtimes`);
 		return res.ok;
 	} catch {
 		return false;

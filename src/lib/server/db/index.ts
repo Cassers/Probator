@@ -1,8 +1,9 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { DATABASE_URL } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import * as schema from './schema';
 
-const client = postgres(DATABASE_URL);
+// dynamic/private so DATABASE_URL is read at runtime (Docker env), not baked in.
+const client = postgres(env.DATABASE_URL);
 export const db = drizzle(client, { schema });
 export { schema };
