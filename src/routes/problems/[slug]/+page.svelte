@@ -17,6 +17,9 @@
 	let result = $state<GradeResult | null>(null);
 	let errorMsg = $state<string | null>(null);
 
+	let activeTab = $state<'description' | 'submissions'>('description');
+	let selectedSubmission = $state<PageData['submissions'][0] | null>(null);
+
 	const currentLang = $derived(getLanguage(langKey)!);
 
 	function changeLanguage(key: string) {
@@ -53,29 +56,117 @@
 </script>
 
 <div class="grid gap-6 lg:grid-cols-2">
-	<!-- Statement -->
-	<section>
+	<!-- Left Pane: Tabs (Description / Submissions) -->
+	<section class="flex flex-col gap-4">
 		<a href="/" class="text-xs text-zinc-500 hover:text-zinc-300">← problemas</a>
-		<h1 class="mt-1 mb-3 text-xl font-semibold">{data.problem.title}</h1>
-		<div class="prose-invert whitespace-pre-wrap text-sm leading-relaxed text-zinc-300">
-			{data.problem.statement}
+		
+		<div class="flex gap-4 border-b border-zinc-800">
+			<button 
+				class="pb-2 text-sm font-medium {activeTab === 'description' ? 'border-b-2 border-emerald-500 text-white' : 'text-zinc-400 hover:text-zinc-300'}"
+				onclick={() => activeTab = 'description'}
+			>
+				Descripción
+			</button>
+			<button 
+				class="pb-2 text-sm font-medium {activeTab === 'submissions' ? 'border-b-2 border-emerald-500 text-white' : 'text-zinc-400 hover:text-zinc-300'}"
+				onclick={() => {
+					activeTab = 'submissions';
+					selectedSubmission = null;
+				}}
+			>
+				Envíos ({data.submissions.length})
+			</button>
 		</div>
 
-		{#if data.samples.length}
-			<h2 class="mt-6 mb-2 text-sm font-semibold text-zinc-200">Ejemplos</h2>
-			<div class="space-y-3">
-				{#each data.samples as s (s.ordinal)}
-					<div class="grid grid-cols-2 gap-2 text-xs">
-						<div>
-							<div class="mb-1 text-zinc-500">Entrada</div>
-							<pre class="rounded bg-zinc-900 p-2 whitespace-pre-wrap">{s.stdin}</pre>
-						</div>
-						<div>
-							<div class="mb-1 text-zinc-500">Salida</div>
-							<pre class="rounded bg-zinc-900 p-2 whitespace-pre-wrap">{s.expectedOutput}</pre>
+		{#if activeTab === 'description'}
+			<div>
+				<h1 class="mb-3 text-xl font-semibold">{data.problem.title}</h1>
+				<div class="prose-invert whitespace-pre-wrap text-sm leading-relaxed text-zinc-300">
+					{data.problem.statement}
+				</div>
+
+				{#if data.samples.length}
+					<h2 class="mt-6 mb-2 text-sm font-semibold text-zinc-200">Ejemplos</h2>
+					<div class="space-y-3">
+						{#each data.samples as s (s.ordinal)}
+							<div class="grid grid-cols-2 gap-2 text-xs">
+								<div>
+									<div class="mb-1 text-zinc-500">Entrada</div>
+									<pre class="rounded bg-zinc-900 p-2 whitespace-pre-wrap">{s.stdin}</pre>
+								</div>
+								<div>
+									<div class="mb-1 text-zinc-500">Salida</div>
+									<pre class="rounded bg-zinc-900 p-2 whitespace-pre-wrap">{s.expectedOutput}</pre>
+								</div>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			</div>
+		{:else}
+			<div>
+				{#if selectedSubmission}
+					<div class="mb-4 flex items-center justify-between">
+						<button 
+							class="text-xs font-medium text-emerald-400 hover:text-emerald-300"
+							onclick={() => selectedSubmission = null}
+						>
+							← Volver a todos los envíos
+						</button>
+						<div class="text-xs text-zinc-500">
+							{new Date(selectedSubmission.createdAt).toLocaleString()}
 						</div>
 					</div>
-				{/each}
+					
+					<div class="mb-4 flex items-center gap-4 rounded border border-zinc-800 bg-zinc-900/50 p-3">
+						<div class="text-lg font-bold {selectedSubmission.verdict === 'Accepted' ? 'text-emerald-400' : 'text-rose-400'}">
+							{selectedSubmission.verdict}
+						</div>
+						<div class="flex gap-4 text-sm text-zinc-400">
+							<div>Runtime: <span class="text-white">{selectedSubmission.runtimeMs ?? 0} ms</span></div>
+							<div>Casos: <span class="text-white">{selectedSubmission.passedCount} / {selectedSubmission.totalCount}</span></div>
+							<div>Lenguaje: <span class="text-white">{selectedSubmission.language}</span></div>
+						</div>
+					</div>
+
+					<div class="h-[400px] rounded border border-zinc-800 bg-[#282c34]">
+						<CodeEditor value={selectedSubmission.sourceCode} lang={getLanguage(selectedSubmission.language)?.cm} readonly={true} />
+					</div>
+				{:else}
+					{#if data.submissions.length === 0}
+						<div class="py-8 text-center text-sm text-zinc-500">No hay envíos aún para este problema.</div>
+					{:else}
+						<div class="overflow-hidden rounded border border-zinc-800">
+							<table class="w-full text-left text-sm">
+								<thead class="bg-zinc-900 text-xs text-zinc-400">
+									<tr>
+										<th class="p-3 font-medium">Estado</th>
+										<th class="p-3 font-medium">Lenguaje</th>
+										<th class="p-3 font-medium">Runtime</th>
+										<th class="p-3 font-medium">Fecha</th>
+									</tr>
+								</thead>
+								<tbody class="divide-y divide-zinc-800">
+									{#each data.submissions as sub (sub.id)}
+										<tr 
+											class="cursor-pointer hover:bg-zinc-800/50"
+											onclick={() => selectedSubmission = sub}
+										>
+											<td class="p-3 font-medium {sub.verdict === 'Accepted' ? 'text-emerald-400' : 'text-rose-400'}">
+												{sub.verdict}
+											</td>
+											<td class="p-3 text-zinc-300">
+												<span class="rounded bg-zinc-800 px-2 py-0.5 text-xs">{sub.language}</span>
+											</td>
+											<td class="p-3 text-zinc-400">{sub.runtimeMs ?? 0} ms</td>
+											<td class="p-3 text-xs text-zinc-500">{new Date(sub.createdAt).toLocaleString()}</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+					{/if}
+				{/if}
 			</div>
 		{/if}
 	</section>

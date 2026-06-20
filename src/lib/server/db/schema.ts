@@ -85,6 +85,7 @@ export const submissions = pgTable(
 		passedCount: integer('passed_count').notNull().default(0),
 		totalCount: integer('total_count').notNull().default(0),
 		runtimeMs: integer('runtime_ms'),
+		memoryKb: integer('memory_kb'),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 	},
 	(t) => [index('submissions_problem_idx').on(t.problemId)]

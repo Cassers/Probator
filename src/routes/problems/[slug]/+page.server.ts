@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import { problems, testCases, languageTemplates } from '$lib/server/db/schema';
-import { eq, and, asc } from 'drizzle-orm';
+import { problems, testCases, languageTemplates, submissions } from '$lib/server/db/schema';
+import { eq, and, asc, desc } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -29,6 +29,22 @@ export const load: PageServerLoad = async ({ params }) => {
 		for (const t of tpls) starters[t.language] = t.starter;
 	}
 
+	const history = await db
+		.select({
+			id: submissions.id,
+			language: submissions.language,
+			sourceCode: submissions.sourceCode,
+			verdict: submissions.verdict,
+			passedCount: submissions.passedCount,
+			totalCount: submissions.totalCount,
+			runtimeMs: submissions.runtimeMs,
+			createdAt: submissions.createdAt
+		})
+		.from(submissions)
+		.where(eq(submissions.problemId, problem.id))
+		.orderBy(desc(submissions.createdAt))
+		.limit(50);
+
 	return {
 		problem: {
 			slug: problem.slug,
@@ -39,6 +55,7 @@ export const load: PageServerLoad = async ({ params }) => {
 			timeLimitMs: problem.timeLimitMs
 		},
 		samples,
-		starters
+		starters,
+		submissions: history
 	};
 };

@@ -11,8 +11,9 @@
 
 	let {
 		value = $bindable(''),
-		lang = 'python'
-	}: { value: string; lang: 'python' | 'cpp' | 'java' } = $props();
+		lang = 'python',
+		readonly = false
+	}: { value: string; lang: 'python' | 'cpp' | 'java'; readonly?: boolean } = $props();
 
 	let host: HTMLDivElement;
 	let view: EditorView;
@@ -33,6 +34,7 @@
 					basicSetup,
 					keymap.of([...defaultKeymap, indentWithTab]),
 					oneDark,
+					EditorView.editable.of(!readonly),
 					langCompartment.of(langExtension(lang)),
 					EditorView.updateListener.of((u) => {
 						if (u.docChanged) value = u.state.doc.toString();

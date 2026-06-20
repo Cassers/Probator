@@ -75,7 +75,7 @@ export async function grade(opts: {
 			verdict: 'Compilation Error',
 			passedCount: 0,
 			totalCount: ordered.length,
-			runtimeMs: null,
+			runtimeMs: first.elapsed,
 			compileOutput: first.res.compile.stderr || first.res.compile.output || 'Compilation error',
 			cases: []
 		};
@@ -110,12 +110,13 @@ export async function grade(opts: {
 		verdict,
 		passedCount,
 		totalCount: caseResults.length,
-		runtimeMs: null,
+		runtimeMs: Math.max(...all.map((a) => a.elapsed)),
 		compileOutput: null,
 		cases: caseResults
 	};
 
 	async function runCase(tc: TestCase) {
+		const start = performance.now();
 		const res = await execute({
 			language: language.piston.language,
 			version: language.piston.version,
@@ -125,7 +126,8 @@ export async function grade(opts: {
 			runTimeoutMs: timeLimitMs,
 			runMemoryBytes: memoryLimitKb > 0 ? memoryLimitKb * 1024 : -1
 		});
-		return { tc, res, verdict: classify(res, tc.expectedOutput) };
+		const elapsed = Math.round(performance.now() - start);
+		return { tc, res, verdict: classify(res, tc.expectedOutput), elapsed };
 	}
 }
 
