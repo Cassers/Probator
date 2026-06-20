@@ -6,8 +6,13 @@
 
 	let { data }: { data: PageData } = $props();
 
+	// In function mode use the problem's per-language stub; else the generic starter.
+	function starterFor(key: string): string {
+		return data.starters?.[key] ?? getLanguage(key)!.starter;
+	}
+
 	let langKey = $state('python');
-	let source = $state(getLanguage('python')!.starter);
+	let source = $state(starterFor('python'));
 	let running = $state(false);
 	let result = $state<GradeResult | null>(null);
 	let errorMsg = $state<string | null>(null);
@@ -15,10 +20,9 @@
 	const currentLang = $derived(getLanguage(langKey)!);
 
 	function changeLanguage(key: string) {
-		const prev = getLanguage(langKey)!;
 		// Only overwrite the editor if the user hasn't diverged from the starter.
-		if (source.trim() === prev.starter.trim() || source.trim() === '') {
-			source = getLanguage(key)!.starter;
+		if (source.trim() === starterFor(langKey).trim() || source.trim() === '') {
+			source = starterFor(key);
 		}
 		langKey = key;
 	}

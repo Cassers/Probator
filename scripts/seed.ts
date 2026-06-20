@@ -7,7 +7,7 @@
 import 'dotenv/config';
 import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
-import { problems, testCases } from '../src/lib/server/db/schema';
+import { problems, testCases, languageTemplates } from '../src/lib/server/db/schema';
 
 const client = postgres(process.env.DATABASE_URL!);
 const db = drizzle(client);
@@ -17,12 +17,19 @@ interface SeedCase {
 	expected: string;
 	sample?: boolean;
 }
+interface SeedTemplate {
+	starter: string;
+	harness: string; // includes {{USER_CODE}}
+}
 interface SeedProblem {
 	slug: string;
 	title: string;
 	difficulty: string;
 	statement: string;
+	mode?: 'stdio' | 'function';
 	cases: SeedCase[];
+	// Only for mode 'function': per-language { starter, harness }.
+	templates?: Record<string, SeedTemplate>;
 }
 
 const data: SeedProblem[] = [
@@ -69,6 +76,48 @@ const data: SeedProblem[] = [
 			{ stdin: '1000000007\n', expected: 'YES\n' },
 			{ stdin: '1000000\n', expected: 'NO\n' }
 		]
+	},
+	{
+		slug: 'suma-de-arreglo',
+		title: 'Suma de un arreglo (modo función)',
+		difficulty: 'easy',
+		mode: 'function',
+		statement:
+			'Implementa la función que recibe un arreglo de enteros y devuelve la suma\n' +
+			'de todos sus elementos. No tienes que leer la entrada: el sistema llama a tu\n' +
+			'función con el arreglo ya parseado.\n\nEjemplo: [1, 2, 3, 4, 5] → 15',
+		cases: [
+			{ stdin: '1 2 3 4 5\n', expected: '15\n', sample: true },
+			{ stdin: '-5 5\n', expected: '0\n', sample: true },
+			{ stdin: '100\n', expected: '100\n' },
+			{ stdin: '0 0 0\n', expected: '0\n' },
+			{ stdin: '10 20 30 40\n', expected: '100\n' }
+		],
+		templates: {
+			python: {
+				starter: 'def suma_arreglo(nums):\n    # nums: lista de enteros. Devuelve su suma.\n    pass\n',
+				harness:
+					'{{USER_CODE}}\n\nimport sys\nnums = list(map(int, sys.stdin.read().split()))\nprint(suma_arreglo(nums))\n'
+			},
+			cpp: {
+				starter:
+					'int suma_arreglo(vector<int>& nums) {\n    // devuelve la suma de nums\n    return 0;\n}\n',
+				harness:
+					'#include <bits/stdc++.h>\nusing namespace std;\n\n{{USER_CODE}}\n\nint main() {\n    vector<int> nums; int x;\n    while (cin >> x) nums.push_back(x);\n    cout << suma_arreglo(nums) << endl;\n    return 0;\n}\n'
+			},
+			c: {
+				starter:
+					'int suma_arreglo(int* nums, int n) {\n    /* devuelve la suma de los n elementos */\n    return 0;\n}\n',
+				harness:
+					'#include <stdio.h>\n\n{{USER_CODE}}\n\nint main(void) {\n    static int buf[100000]; int n = 0;\n    while (scanf("%d", &buf[n]) == 1) n++;\n    printf("%d\\n", suma_arreglo(buf, n));\n    return 0;\n}\n'
+			},
+			java: {
+				starter:
+					'static int sumaArreglo(int[] nums) {\n    // devuelve la suma de nums\n    return 0;\n}\n',
+				harness:
+					'import java.util.*;\n\npublic class Main {\n    {{USER_CODE}}\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        ArrayList<Integer> l = new ArrayList<>();\n        while (sc.hasNextInt()) l.add(sc.nextInt());\n        int[] nums = new int[l.size()];\n        for (int i = 0; i < l.size(); i++) nums[i] = l.get(i);\n        System.out.println(sumaArreglo(nums));\n    }\n}\n'
+			}
+		}
 	}
 ];
 
@@ -81,7 +130,8 @@ async function main() {
 				slug: p.slug,
 				title: p.title,
 				difficulty: p.difficulty,
-				statement: p.statement
+				statement: p.statement,
+				mode: p.mode ?? 'stdio'
 			})
 			.onConflictDoNothing({ target: problems.slug })
 			.returning({ id: problems.id });
@@ -100,7 +150,19 @@ async function main() {
 				isSample: c.sample ?? false
 			}))
 		);
-		console.log(`  ✓ ${p.slug} (${p.cases.length} casos)`);
+
+		if (p.templates) {
+			await db.insert(languageTemplates).values(
+				Object.entries(p.templates).map(([language, t]) => ({
+					problemId: row.id,
+					language,
+					starter: t.starter,
+					harness: t.harness
+				}))
+			);
+		}
+		const extra = p.templates ? `, ${Object.keys(p.templates).length} templates` : '';
+		console.log(`  ✓ ${p.slug} (${p.cases.length} casos${extra})`);
 	}
 	await client.end();
 	console.log('Listo.');

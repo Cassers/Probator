@@ -1,9 +1,10 @@
 import { json, error } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import { problems, testCases, submissions } from '$lib/server/db/schema';
-import { eq, asc } from 'drizzle-orm';
+import { problems, testCases, submissions, languageTemplates } from '$lib/server/db/schema';
+import { eq, and, asc } from 'drizzle-orm';
 import { getLanguage } from '$lib/judge/languages';
 import { grade } from '$lib/server/judge/grade';
+import { wrapSource } from '$lib/judge/wrap';
 import type { RequestHandler } from './$types';
 
 const MAX_SOURCE = 64 * 1024; // 64 KB guard against abuse
@@ -36,11 +37,28 @@ export const POST: RequestHandler = async ({ request }) => {
 		.orderBy(asc(testCases.ordinal));
 	if (cases.length === 0) throw error(409, 'El problema no tiene casos de prueba');
 
+	// In function mode, wrap the student's function with the problem's harness.
+	let runSource = source;
+	if (problem.mode === 'function') {
+		const [tpl] = await db
+			.select()
+			.from(languageTemplates)
+			.where(
+				and(
+					eq(languageTemplates.problemId, problem.id),
+					eq(languageTemplates.language, language.key)
+				)
+			)
+			.limit(1);
+		if (!tpl) throw error(409, `Este problema no soporta ${language.label} todavía`);
+		runSource = wrapSource(tpl.harness, source);
+	}
+
 	let result;
 	try {
 		result = await grade({
 			language,
-			source,
+			source: runSource,
 			cases,
 			timeLimitMs: problem.timeLimitMs,
 			memoryLimitKb: problem.memoryLimitKb

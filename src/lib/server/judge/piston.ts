@@ -15,6 +15,16 @@ function baseUrl(): string {
 	return (env.PISTON_URL ?? 'http://localhost:2000').replace(/\/+$/, '');
 }
 
+/**
+ * Piston rejects run_timeout above its configured ceiling with a 400 (default
+ * 3000ms). Clamp so a generous per-problem limit never turns into a hard error.
+ * Override with PISTON_MAX_RUN_MS to match your instance's `max_run_timeout`.
+ */
+function maxRunMs(): number {
+	const n = Number(env.PISTON_MAX_RUN_MS);
+	return Number.isFinite(n) && n > 0 ? n : 3000;
+}
+
 export interface PistonStage {
 	stdout: string;
 	stderr: string;
@@ -50,7 +60,7 @@ export async function execute(opts: ExecuteOpts): Promise<PistonResponse> {
 			version: opts.version,
 			files: [{ name: opts.fileName, content: opts.source }],
 			stdin: opts.stdin,
-			run_timeout: opts.runTimeoutMs,
+			run_timeout: Math.min(opts.runTimeoutMs, maxRunMs()),
 			compile_timeout: 10000,
 			run_memory_limit: opts.runMemoryBytes ?? -1
 		})
