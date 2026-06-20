@@ -1,5 +1,6 @@
 <script lang="ts">
 	import CodeEditor from '$lib/components/CodeEditor.svelte';
+	import RuntimeChart from '$lib/components/RuntimeChart.svelte';
 	import { LANGUAGES, getLanguage } from '$lib/judge/languages';
 	import type { GradeResult } from '$lib/server/judge/grade';
 	import type { PageData } from './$types';
@@ -19,6 +20,25 @@
 
 	let activeTab = $state<'description' | 'submissions'>('description');
 	let selectedSubmission = $state<PageData['submissions'][0] | null>(null);
+
+	let statsData = $state<number[]>([]);
+	let loadingStats = $state(false);
+
+	$effect(() => {
+		// Fetch stats when an accepted submission is displayed
+		const currentLang = selectedSubmission?.verdict === 'Accepted' 
+			? selectedSubmission.language 
+			: (result?.verdict === 'Accepted' ? langKey : null);
+			
+		if (currentLang) {
+			loadingStats = true;
+			fetch(`/api/stats?slug=${data.problem.slug}&language=${currentLang}`)
+				.then(r => r.json())
+				.then(d => { statsData = d; })
+				.catch(() => {})
+				.finally(() => { loadingStats = false; });
+		}
+	});
 
 	const currentLang = $derived(getLanguage(langKey)!);
 
@@ -141,9 +161,17 @@
 						</div>
 					</div>
 
-					<div class="h-[400px] rounded border border-zinc-800 bg-[#282c34]">
+					<div class="h-[400px] rounded border border-zinc-800 bg-[#282c34] mb-4">
 						<CodeEditor value={selectedSubmission.sourceCode} lang={getLanguage(selectedSubmission.language)?.cm} readonly={true} />
 					</div>
+
+					{#if selectedSubmission.verdict === 'Accepted' && selectedSubmission.runtimeMs != null}
+						{#if loadingStats}
+							<div class="text-xs text-zinc-500 text-center py-4">Cargando estadísticas...</div>
+						{:else}
+							<RuntimeChart runtimeMs={selectedSubmission.runtimeMs} allRuntimes={statsData} />
+						{/if}
+					{/if}
 				{:else}
 					{#if data.submissions.length === 0}
 						<div class="py-8 text-center text-sm text-zinc-500">No hay envíos aún para este problema.</div>
@@ -257,6 +285,14 @@
 					</div>
 				{/if}
 			</div>
+
+			{#if accepted && result.runtimeMs != null}
+				{#if loadingStats}
+					<div class="text-xs text-zinc-500 text-center py-4">Cargando estadísticas...</div>
+				{:else}
+					<RuntimeChart runtimeMs={result.runtimeMs} allRuntimes={statsData} />
+				{/if}
+			{/if}
 		{/if}
 	</section>
 </div>
