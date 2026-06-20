@@ -1,46 +1,43 @@
 <script lang="ts">
-	export let runtimeMs: number;
-	export let allRuntimes: number[] = [];
+	let { runtimeMs, allRuntimes = [] }: { runtimeMs: number, allRuntimes?: number[] } = $props();
 
-	$: validRuntimes = allRuntimes.filter((r) => r != null && !isNaN(r));
-	$: total = validRuntimes.length;
+	let validRuntimes = $derived(allRuntimes.filter((r) => r != null && !isNaN(r)));
+	let total = $derived(validRuntimes.length);
 	// Calculate beats
 	// We beat anyone who is strictly slower than us (higher runtimeMs)
-	$: slowerCount = validRuntimes.filter((r) => r > runtimeMs).length;
+	let slowerCount = $derived(validRuntimes.filter((r) => r > runtimeMs).length);
 	
 	// If total > 1, we divide by total - 1 (since we don't count ourselves to beat ourselves)
 	// If total === 1, we are the only one, so we beat 100% of others (which is 0 people, but conceptually we are the best)
-	$: beatsPct = total > 1 ? ((slowerCount / (total - 1)) * 100).toFixed(2) : '100.00';
+	let beatsPct = $derived(total > 1 ? ((slowerCount / (total - 1)) * 100).toFixed(2) : '100.00');
 
 	// Chart calculations
-	$: minR = Math.min(...validRuntimes, runtimeMs);
-	$: maxR = Math.max(...validRuntimes, runtimeMs);
-	$: range = maxR - minR;
+	let minR = $derived(Math.min(...validRuntimes, runtimeMs));
+	let maxR = $derived(Math.max(...validRuntimes, runtimeMs));
+	let range = $derived(maxR - minR);
 	
 	// Add some padding to max so the rightmost bar isn't exactly at the edge
-	$: paddedMax = maxR + (range === 0 ? 10 : range * 0.1);
-	$: paddedRange = paddedMax - minR;
+	let paddedMax = $derived(maxR + (range === 0 ? 10 : range * 0.1));
+	let paddedRange = $derived(paddedMax - minR);
 	
 	const BIN_COUNT = 40;
-	$: binWidth = paddedRange / BIN_COUNT;
+	let binWidth = $derived(paddedRange / BIN_COUNT);
 
-	$: bins = Array.from({ length: BIN_COUNT }, () => 0);
-	$: {
-		// Reset bins
-		for (let i = 0; i < BIN_COUNT; i++) bins[i] = 0;
-		// Populate bins
+	let bins = $derived.by(() => {
+		let tempBins = Array.from({ length: BIN_COUNT }, () => 0);
 		for (const r of validRuntimes) {
 			let idx = Math.floor((r - minR) / binWidth);
 			if (idx >= BIN_COUNT) idx = BIN_COUNT - 1;
 			if (idx < 0) idx = 0;
-			bins[idx]++;
+			tempBins[idx]++;
 		}
-	}
+		return tempBins;
+	});
 
-	$: maxCount = Math.max(...bins, 1);
+	let maxCount = $derived(Math.max(...bins, 1));
 	
-	$: myBinIdx = Math.floor((runtimeMs - minR) / binWidth);
-	$: myBinIdxClamped = Math.min(Math.max(myBinIdx, 0), BIN_COUNT - 1);
+	let myBinIdx = $derived(Math.floor((runtimeMs - minR) / binWidth));
+	let myBinIdxClamped = $derived(Math.min(Math.max(myBinIdx, 0), BIN_COUNT - 1));
 </script>
 
 <div class="mt-6 p-4 bg-zinc-900 rounded-lg border border-zinc-800">
