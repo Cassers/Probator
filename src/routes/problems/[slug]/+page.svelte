@@ -64,17 +64,18 @@
 				errorMsg = (await res.json().catch(() => ({}))).message ?? `Error ${res.status}`;
 				return;
 			}
-			result = await res.json();
-			
+			const r: GradeResult = await res.json();
+			result = r;
+
 			// Auto-update the list so you don't have to refresh
 			data.submissions = [{
 				id: Date.now(), // dummy ID for the list
 				language: langKey,
 				sourceCode: source,
-				verdict: result.verdict,
-				passedCount: result.passedCount,
-				totalCount: result.totalCount,
-				runtimeMs: result.runtimeMs,
+				verdict: r.verdict,
+				passedCount: r.passedCount,
+				totalCount: r.totalCount,
+				runtimeMs: r.runtimeMs,
 				createdAt: new Date()
 			}, ...data.submissions];
 		} catch {

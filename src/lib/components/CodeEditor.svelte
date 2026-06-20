@@ -8,21 +8,44 @@
 	import { python } from '@codemirror/lang-python';
 	import { cpp } from '@codemirror/lang-cpp';
 	import { java } from '@codemirror/lang-java';
+	import { javascript } from '@codemirror/lang-javascript';
+	import { rust } from '@codemirror/lang-rust';
+	import { go } from '@codemirror/lang-go';
+	import { StreamLanguage } from '@codemirror/language';
+	import { csharp } from '@codemirror/legacy-modes/mode/clike';
+	import { ruby } from '@codemirror/legacy-modes/mode/ruby';
 
 	let {
 		value = $bindable(''),
 		lang = 'python',
 		readonly = false
-	}: { value: string; lang: 'python' | 'cpp' | 'java'; readonly?: boolean } = $props();
+	}: { value: string; lang?: string; readonly?: boolean } = $props();
 
 	let host: HTMLDivElement;
 	let view: EditorView;
 	const langCompartment = new Compartment();
 
 	function langExtension(l: string) {
-		if (l === 'cpp') return cpp();
-		if (l === 'java') return java();
-		return python();
+		switch (l) {
+			case 'cpp':
+				return cpp();
+			case 'java':
+				return java();
+			case 'javascript':
+				return javascript();
+			case 'typescript':
+				return javascript({ typescript: true });
+			case 'go':
+				return go();
+			case 'rust':
+				return rust();
+			case 'csharp':
+				return StreamLanguage.define(csharp);
+			case 'ruby':
+				return StreamLanguage.define(ruby);
+			default:
+				return python();
+		}
 	}
 
 	onMount(() => {
