@@ -36,7 +36,15 @@ services:
       - piston
     expose:
       - '3000'
+    # default = stack-internal (reaches postgres/piston); dokploy-network = Traefik routing.
+    networks:
+      - default
+      - dokploy-network
     restart: always
 
 volumes:
   pgdata:
+
+networks:
+  dokploy-network:
+    external: true
