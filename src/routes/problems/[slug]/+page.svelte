@@ -67,13 +67,23 @@
 			: LANGUAGES
 	);
 
+	const LAST_LANG_KEY = 'probator:lastLang';
+
 	function changeLanguage(key: string) {
 		langKey = key;
+		if (browser) localStorage.setItem(LAST_LANG_KEY, key); // remember preference
 		source = loadFor(key); // restore this language's draft, or its starter
 	}
 
-	// Restore any saved draft for the current language on load.
+	// Auto-select the last used language (if available here) + restore its draft.
 	onMount(() => {
+		if (browser) {
+			const saved = localStorage.getItem(LAST_LANG_KEY);
+			if (saved && availableLanguages.some((l) => l.key === saved)) langKey = saved;
+		}
+		if (!availableLanguages.some((l) => l.key === langKey)) {
+			langKey = availableLanguages[0]?.key ?? langKey;
+		}
 		source = loadFor(langKey);
 	});
 
