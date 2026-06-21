@@ -65,6 +65,30 @@ const data: SeedProblem[] = [
 			java: {
 				starter: 'static int sumaDosNumeros(int a, int b) {\n    // devuelve la suma de a y b\n    return 0;\n}\n',
 				harness: 'import java.util.*;\n\npublic class Main {\n    {{USER_CODE}}\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (sc.hasNextInt()) {\n            int a = sc.nextInt();\n            int b = sc.nextInt();\n            System.out.println(sumaDosNumeros(a, b));\n        }\n    }\n}\n'
+			},
+			javascript: {
+				starter: "function sumaDosNumeros(a, b) {\n  // devuelve la suma de a y b\n}\n",
+				harness: "{{USER_CODE}}\nconst A=require(\"fs\").readFileSync(0,\"utf8\").trim().split(/\\s+/).filter(s=>s.length).map(Number);\nconsole.log(sumaDosNumeros(A[0], A[1]));\n"
+			},
+			typescript: {
+				starter: "function sumaDosNumeros(a: number, b: number): number {\n  // devuelve la suma de a y b\n  return 0;\n}\n",
+				harness: "// @ts-nocheck\n{{USER_CODE}}\nconst A=require(\"fs\").readFileSync(0,\"utf8\").trim().split(/\\s+/).filter(s=>s.length).map(Number);\nconsole.log(sumaDosNumeros(A[0], A[1]));\n"
+			},
+			go: {
+				starter: "func sumaDosNumeros(a, b int) int {\n\t// devuelve la suma de a y b\n\treturn 0\n}\n",
+				harness: "package main\nimport(\"bufio\";\"fmt\";\"os\";\"strconv\")\n{{USER_CODE}}\nfunc main(){sc:=bufio.NewScanner(os.Stdin);sc.Buffer(make([]byte,1048576),1048576);sc.Split(bufio.ScanWords);A:=[]int{};for sc.Scan(){v,_:=strconv.Atoi(sc.Text());A=append(A,v)};fmt.Println(sumaDosNumeros(A[0],A[1]))}\n"
+			},
+			rust: {
+				starter: "fn suma_dos_numeros(a: i64, b: i64) -> i64 {\n    // devuelve la suma de a y b\n    0\n}\n",
+				harness: "use std::io::*;\n{{USER_CODE}}\nfn main(){let mut s=String::new();stdin().read_to_string(&mut s).unwrap();let a:Vec<i64>=s.split_whitespace().map(|x|x.parse().unwrap()).collect();println!(\"{}\",suma_dos_numeros(a[0],a[1]));}\n"
+			},
+			csharp: {
+				starter: "static long SumaDosNumeros(long a, long b) {\n    // devuelve la suma de a y b\n    return 0;\n}\n",
+				harness: "using System;using System.Linq;\nclass Program{\n{{USER_CODE}}\nstatic void Main(){var a=Console.In.ReadToEnd().Split(new[]{' ','\\n','\\r','\\t'},StringSplitOptions.RemoveEmptyEntries).Select(long.Parse).ToArray();Console.WriteLine(SumaDosNumeros(a[0],a[1]));}}\n"
+			},
+			ruby: {
+				starter: "def suma_dos_numeros(a, b)\n  # devuelve la suma de a y b\nend\n",
+				harness: "{{USER_CODE}}\na=STDIN.read.split.map(&:to_i)\nputs(suma_dos_numeros(a[0],a[1]))\n"
 			}
 		}
 	},
@@ -99,6 +123,30 @@ const data: SeedProblem[] = [
 			java: {
 				starter: 'static int maximoLista(int[] nums) {\n    // devuelve el valor máximo\n    return 0;\n}\n',
 				harness: 'import java.util.*;\n\npublic class Main {\n    {{USER_CODE}}\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (sc.hasNextInt()) {\n            int n = sc.nextInt();\n            int[] nums = new int[n];\n            for (int i = 0; i < n && sc.hasNextInt(); i++) nums[i] = sc.nextInt();\n            System.out.println(maximoLista(nums));\n        }\n    }\n}\n'
+			},
+			javascript: {
+				starter: "function maximoLista(nums) {\n  // devuelve el valor máximo\n}\n",
+				harness: "{{USER_CODE}}\nconst A=require(\"fs\").readFileSync(0,\"utf8\").trim().split(/\\s+/).filter(s=>s.length).map(Number);\nconsole.log(maximoLista(A.slice(1)));\n"
+			},
+			typescript: {
+				starter: "function maximoLista(nums: number[]): number {\n  // devuelve el valor máximo\n  return 0;\n}\n",
+				harness: "// @ts-nocheck\n{{USER_CODE}}\nconst A=require(\"fs\").readFileSync(0,\"utf8\").trim().split(/\\s+/).filter(s=>s.length).map(Number);\nconsole.log(maximoLista(A.slice(1)));\n"
+			},
+			go: {
+				starter: "func maximoLista(nums []int) int {\n\t// devuelve el valor máximo\n\treturn 0\n}\n",
+				harness: "package main\nimport(\"bufio\";\"fmt\";\"os\";\"strconv\")\n{{USER_CODE}}\nfunc main(){sc:=bufio.NewScanner(os.Stdin);sc.Buffer(make([]byte,1048576),1048576);sc.Split(bufio.ScanWords);A:=[]int{};for sc.Scan(){v,_:=strconv.Atoi(sc.Text());A=append(A,v)};fmt.Println(maximoLista(A[1:]))}\n"
+			},
+			rust: {
+				starter: "fn maximo_lista(nums: Vec<i64>) -> i64 {\n    // devuelve el valor máximo\n    0\n}\n",
+				harness: "use std::io::*;\n{{USER_CODE}}\nfn main(){let mut s=String::new();stdin().read_to_string(&mut s).unwrap();let a:Vec<i64>=s.split_whitespace().map(|x|x.parse().unwrap()).collect();println!(\"{}\",maximo_lista(a[1..].to_vec()));}\n"
+			},
+			csharp: {
+				starter: "static long MaximoLista(long[] nums) {\n    // devuelve el valor máximo\n    return 0;\n}\n",
+				harness: "using System;using System.Linq;\nclass Program{\n{{USER_CODE}}\nstatic void Main(){var a=Console.In.ReadToEnd().Split(new[]{' ','\\n','\\r','\\t'},StringSplitOptions.RemoveEmptyEntries).Select(long.Parse).ToArray();Console.WriteLine(MaximoLista(a.Skip(1).ToArray()));}}\n"
+			},
+			ruby: {
+				starter: "def maximo_lista(nums)\n  # devuelve el valor máximo\nend\n",
+				harness: "{{USER_CODE}}\na=STDIN.read.split.map(&:to_i)\nputs(maximo_lista(a[1..]))\n"
 			}
 		}
 	},
@@ -135,6 +183,30 @@ const data: SeedProblem[] = [
 			java: {
 				starter: 'static boolean esPrimo(long n) {\n    // devuelve true si n es primo\n    return false;\n}\n',
 				harness: 'import java.util.*;\n\npublic class Main {\n    {{USER_CODE}}\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if (sc.hasNextLong()) {\n            long n = sc.nextLong();\n            System.out.println(esPrimo(n) ? "YES" : "NO");\n        }\n    }\n}\n'
+			},
+			javascript: {
+				starter: "function esPrimo(n) {\n  // devuelve true si n es primo\n  return false;\n}\n",
+				harness: "{{USER_CODE}}\nconst A=require(\"fs\").readFileSync(0,\"utf8\").trim().split(/\\s+/).filter(s=>s.length).map(Number);\nconsole.log(esPrimo(A[0])?\"YES\":\"NO\");\n"
+			},
+			typescript: {
+				starter: "function esPrimo(n: number): boolean {\n  // devuelve true si n es primo\n  return false;\n}\n",
+				harness: "// @ts-nocheck\n{{USER_CODE}}\nconst A=require(\"fs\").readFileSync(0,\"utf8\").trim().split(/\\s+/).filter(s=>s.length).map(Number);\nconsole.log(esPrimo(A[0])?\"YES\":\"NO\");\n"
+			},
+			go: {
+				starter: "func esPrimo(n int) bool {\n\t// devuelve true si n es primo\n\treturn false\n}\n",
+				harness: "package main\nimport(\"bufio\";\"fmt\";\"os\";\"strconv\")\n{{USER_CODE}}\nfunc main(){sc:=bufio.NewScanner(os.Stdin);sc.Buffer(make([]byte,1048576),1048576);sc.Split(bufio.ScanWords);A:=[]int{};for sc.Scan(){v,_:=strconv.Atoi(sc.Text());A=append(A,v)};r:=\"NO\";if esPrimo(A[0]){r=\"YES\"};fmt.Println(r)}\n"
+			},
+			rust: {
+				starter: "fn es_primo(n: i64) -> bool {\n    // devuelve true si n es primo\n    false\n}\n",
+				harness: "use std::io::*;\n{{USER_CODE}}\nfn main(){let mut s=String::new();stdin().read_to_string(&mut s).unwrap();let a:Vec<i64>=s.split_whitespace().map(|x|x.parse().unwrap()).collect();println!(\"{}\",if es_primo(a[0]){\"YES\"}else{\"NO\"});}\n"
+			},
+			csharp: {
+				starter: "static bool EsPrimo(long n) {\n    // devuelve true si n es primo\n    return false;\n}\n",
+				harness: "using System;using System.Linq;\nclass Program{\n{{USER_CODE}}\nstatic void Main(){var a=Console.In.ReadToEnd().Split(new[]{' ','\\n','\\r','\\t'},StringSplitOptions.RemoveEmptyEntries).Select(long.Parse).ToArray();Console.WriteLine(EsPrimo(a[0])?\"YES\":\"NO\");}}\n"
+			},
+			ruby: {
+				starter: "def es_primo(n)\n  # devuelve true si n es primo\n  false\nend\n",
+				harness: "{{USER_CODE}}\na=STDIN.read.split.map(&:to_i)\nputs(es_primo(a[0]) ? \"YES\" : \"NO\")\n"
 			}
 		}
 	},
@@ -170,6 +242,30 @@ const data: SeedProblem[] = [
 			java: {
 				starter: 'static int sumaArreglo(int[] nums) {\n    // devuelve la suma de nums\n    return 0;\n}\n',
 				harness: 'import java.util.*;\n\npublic class Main {\n    {{USER_CODE}}\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        ArrayList<Integer> l = new ArrayList<>();\n        while (sc.hasNextInt()) l.add(sc.nextInt());\n        int[] nums = new int[l.size()];\n        for (int i = 0; i < l.size(); i++) nums[i] = l.get(i);\n        System.out.println(sumaArreglo(nums));\n    }\n}\n'
+			},
+			javascript: {
+				starter: "function sumaArreglo(nums) {\n  // devuelve la suma de nums\n}\n",
+				harness: "{{USER_CODE}}\nconst A=require(\"fs\").readFileSync(0,\"utf8\").trim().split(/\\s+/).filter(s=>s.length).map(Number);\nconsole.log(sumaArreglo(A));\n"
+			},
+			typescript: {
+				starter: "function sumaArreglo(nums: number[]): number {\n  // devuelve la suma de nums\n  return 0;\n}\n",
+				harness: "// @ts-nocheck\n{{USER_CODE}}\nconst A=require(\"fs\").readFileSync(0,\"utf8\").trim().split(/\\s+/).filter(s=>s.length).map(Number);\nconsole.log(sumaArreglo(A));\n"
+			},
+			go: {
+				starter: "func sumaArreglo(nums []int) int {\n\t// devuelve la suma de nums\n\treturn 0\n}\n",
+				harness: "package main\nimport(\"bufio\";\"fmt\";\"os\";\"strconv\")\n{{USER_CODE}}\nfunc main(){sc:=bufio.NewScanner(os.Stdin);sc.Buffer(make([]byte,1048576),1048576);sc.Split(bufio.ScanWords);A:=[]int{};for sc.Scan(){v,_:=strconv.Atoi(sc.Text());A=append(A,v)};fmt.Println(sumaArreglo(A))}\n"
+			},
+			rust: {
+				starter: "fn suma_arreglo(nums: Vec<i64>) -> i64 {\n    // devuelve la suma de nums\n    0\n}\n",
+				harness: "use std::io::*;\n{{USER_CODE}}\nfn main(){let mut s=String::new();stdin().read_to_string(&mut s).unwrap();let a:Vec<i64>=s.split_whitespace().map(|x|x.parse().unwrap()).collect();println!(\"{}\",suma_arreglo(a.clone()));}\n"
+			},
+			csharp: {
+				starter: "static long SumaArreglo(long[] nums) {\n    // devuelve la suma de nums\n    return 0;\n}\n",
+				harness: "using System;using System.Linq;\nclass Program{\n{{USER_CODE}}\nstatic void Main(){var a=Console.In.ReadToEnd().Split(new[]{' ','\\n','\\r','\\t'},StringSplitOptions.RemoveEmptyEntries).Select(long.Parse).ToArray();Console.WriteLine(SumaArreglo(a));}}\n"
+			},
+			ruby: {
+				starter: "def suma_arreglo(nums)\n  # devuelve la suma de nums\nend\n",
+				harness: "{{USER_CODE}}\na=STDIN.read.split.map(&:to_i)\nputs(suma_arreglo(a))\n"
 			}
 		}
 	}
@@ -195,102 +291,6 @@ async function main() {
 					difficulty: p.difficulty,
 					statement: p.statement,
 					mode: modeVal
-				},
-				javascript: {
-					starter: "function sumaArreglo(nums) {\n  // devuelve la suma de nums\n}\n",
-					harness: "{{USER_CODE}}\nconst A=require(\"fs\").readFileSync(0,\"utf8\").trim().split(/\\s+/).filter(s=>s.length).map(Number);\nconsole.log(sumaArreglo(A));\n"
-				},
-				typescript: {
-					starter: "function sumaArreglo(nums: number[]): number {\n  // devuelve la suma de nums\n  return 0;\n}\n",
-					harness: "// @ts-nocheck\n{{USER_CODE}}\nconst A=require(\"fs\").readFileSync(0,\"utf8\").trim().split(/\\s+/).filter(s=>s.length).map(Number);\nconsole.log(sumaArreglo(A));\n"
-				},
-				go: {
-					starter: "func sumaArreglo(nums []int) int {\n\t// devuelve la suma de nums\n\treturn 0\n}\n",
-					harness: "package main\nimport(\"bufio\";\"fmt\";\"os\";\"strconv\")\n{{USER_CODE}}\nfunc main(){sc:=bufio.NewScanner(os.Stdin);sc.Buffer(make([]byte,1048576),1048576);sc.Split(bufio.ScanWords);A:=[]int{};for sc.Scan(){v,_:=strconv.Atoi(sc.Text());A=append(A,v)};fmt.Println(sumaArreglo(A))}\n"
-				},
-				rust: {
-					starter: "fn suma_arreglo(nums: Vec<i64>) -> i64 {\n    // devuelve la suma de nums\n    0\n}\n",
-					harness: "use std::io::*;\n{{USER_CODE}}\nfn main(){let mut s=String::new();stdin().read_to_string(&mut s).unwrap();let a:Vec<i64>=s.split_whitespace().map(|x|x.parse().unwrap()).collect();println!(\"{}\",suma_arreglo(a.clone()));}\n"
-				},
-				csharp: {
-					starter: "static long SumaArreglo(long[] nums) {\n    // devuelve la suma de nums\n    return 0;\n}\n",
-					harness: "using System;using System.Linq;\nclass Program{\n{{USER_CODE}}\nstatic void Main(){var a=Console.In.ReadToEnd().Split(new[]{' ','\\n','\\r','\\t'},StringSplitOptions.RemoveEmptyEntries).Select(long.Parse).ToArray();Console.WriteLine(SumaArreglo(a));}}\n"
-				},
-				ruby: {
-					starter: "def suma_arreglo(nums)\n  # devuelve la suma de nums\nend\n",
-					harness: "{{USER_CODE}}\na=STDIN.read.split.map(&:to_i)\nputs(suma_arreglo(a))\n"
-				},
-				javascript: {
-					starter: "function esPrimo(n) {\n  // devuelve true si n es primo\n  return false;\n}\n",
-					harness: "{{USER_CODE}}\nconst A=require(\"fs\").readFileSync(0,\"utf8\").trim().split(/\\s+/).filter(s=>s.length).map(Number);\nconsole.log(esPrimo(A[0])?\"YES\":\"NO\");\n"
-				},
-				typescript: {
-					starter: "function esPrimo(n: number): boolean {\n  // devuelve true si n es primo\n  return false;\n}\n",
-					harness: "// @ts-nocheck\n{{USER_CODE}}\nconst A=require(\"fs\").readFileSync(0,\"utf8\").trim().split(/\\s+/).filter(s=>s.length).map(Number);\nconsole.log(esPrimo(A[0])?\"YES\":\"NO\");\n"
-				},
-				go: {
-					starter: "func esPrimo(n int) bool {\n\t// devuelve true si n es primo\n\treturn false\n}\n",
-					harness: "package main\nimport(\"bufio\";\"fmt\";\"os\";\"strconv\")\n{{USER_CODE}}\nfunc main(){sc:=bufio.NewScanner(os.Stdin);sc.Buffer(make([]byte,1048576),1048576);sc.Split(bufio.ScanWords);A:=[]int{};for sc.Scan(){v,_:=strconv.Atoi(sc.Text());A=append(A,v)};r:=\"NO\";if esPrimo(A[0]){r=\"YES\"};fmt.Println(r)}\n"
-				},
-				rust: {
-					starter: "fn es_primo(n: i64) -> bool {\n    // devuelve true si n es primo\n    false\n}\n",
-					harness: "use std::io::*;\n{{USER_CODE}}\nfn main(){let mut s=String::new();stdin().read_to_string(&mut s).unwrap();let a:Vec<i64>=s.split_whitespace().map(|x|x.parse().unwrap()).collect();println!(\"{}\",if es_primo(a[0]){\"YES\"}else{\"NO\"});}\n"
-				},
-				csharp: {
-					starter: "static bool EsPrimo(long n) {\n    // devuelve true si n es primo\n    return false;\n}\n",
-					harness: "using System;using System.Linq;\nclass Program{\n{{USER_CODE}}\nstatic void Main(){var a=Console.In.ReadToEnd().Split(new[]{' ','\\n','\\r','\\t'},StringSplitOptions.RemoveEmptyEntries).Select(long.Parse).ToArray();Console.WriteLine(EsPrimo(a[0])?\"YES\":\"NO\");}}\n"
-				},
-				ruby: {
-					starter: "def es_primo(n)\n  # devuelve true si n es primo\n  false\nend\n",
-					harness: "{{USER_CODE}}\na=STDIN.read.split.map(&:to_i)\nputs(es_primo(a[0]) ? \"YES\" : \"NO\")\n"
-				},
-				javascript: {
-					starter: "function maximoLista(nums) {\n  // devuelve el valor máximo\n}\n",
-					harness: "{{USER_CODE}}\nconst A=require(\"fs\").readFileSync(0,\"utf8\").trim().split(/\\s+/).filter(s=>s.length).map(Number);\nconsole.log(maximoLista(A.slice(1)));\n"
-				},
-				typescript: {
-					starter: "function maximoLista(nums: number[]): number {\n  // devuelve el valor máximo\n  return 0;\n}\n",
-					harness: "// @ts-nocheck\n{{USER_CODE}}\nconst A=require(\"fs\").readFileSync(0,\"utf8\").trim().split(/\\s+/).filter(s=>s.length).map(Number);\nconsole.log(maximoLista(A.slice(1)));\n"
-				},
-				go: {
-					starter: "func maximoLista(nums []int) int {\n\t// devuelve el valor máximo\n\treturn 0\n}\n",
-					harness: "package main\nimport(\"bufio\";\"fmt\";\"os\";\"strconv\")\n{{USER_CODE}}\nfunc main(){sc:=bufio.NewScanner(os.Stdin);sc.Buffer(make([]byte,1048576),1048576);sc.Split(bufio.ScanWords);A:=[]int{};for sc.Scan(){v,_:=strconv.Atoi(sc.Text());A=append(A,v)};fmt.Println(maximoLista(A[1:]))}\n"
-				},
-				rust: {
-					starter: "fn maximo_lista(nums: Vec<i64>) -> i64 {\n    // devuelve el valor máximo\n    0\n}\n",
-					harness: "use std::io::*;\n{{USER_CODE}}\nfn main(){let mut s=String::new();stdin().read_to_string(&mut s).unwrap();let a:Vec<i64>=s.split_whitespace().map(|x|x.parse().unwrap()).collect();println!(\"{}\",maximo_lista(a[1..].to_vec()));}\n"
-				},
-				csharp: {
-					starter: "static long MaximoLista(long[] nums) {\n    // devuelve el valor máximo\n    return 0;\n}\n",
-					harness: "using System;using System.Linq;\nclass Program{\n{{USER_CODE}}\nstatic void Main(){var a=Console.In.ReadToEnd().Split(new[]{' ','\\n','\\r','\\t'},StringSplitOptions.RemoveEmptyEntries).Select(long.Parse).ToArray();Console.WriteLine(MaximoLista(a.Skip(1).ToArray()));}}\n"
-				},
-				ruby: {
-					starter: "def maximo_lista(nums)\n  # devuelve el valor máximo\nend\n",
-					harness: "{{USER_CODE}}\na=STDIN.read.split.map(&:to_i)\nputs(maximo_lista(a[1..]))\n"
-				},
-				javascript: {
-					starter: "function sumaDosNumeros(a, b) {\n  // devuelve la suma de a y b\n}\n",
-					harness: "{{USER_CODE}}\nconst A=require(\"fs\").readFileSync(0,\"utf8\").trim().split(/\\s+/).filter(s=>s.length).map(Number);\nconsole.log(sumaDosNumeros(A[0], A[1]));\n"
-				},
-				typescript: {
-					starter: "function sumaDosNumeros(a: number, b: number): number {\n  // devuelve la suma de a y b\n  return 0;\n}\n",
-					harness: "// @ts-nocheck\n{{USER_CODE}}\nconst A=require(\"fs\").readFileSync(0,\"utf8\").trim().split(/\\s+/).filter(s=>s.length).map(Number);\nconsole.log(sumaDosNumeros(A[0], A[1]));\n"
-				},
-				go: {
-					starter: "func sumaDosNumeros(a, b int) int {\n\t// devuelve la suma de a y b\n\treturn 0\n}\n",
-					harness: "package main\nimport(\"bufio\";\"fmt\";\"os\";\"strconv\")\n{{USER_CODE}}\nfunc main(){sc:=bufio.NewScanner(os.Stdin);sc.Buffer(make([]byte,1048576),1048576);sc.Split(bufio.ScanWords);A:=[]int{};for sc.Scan(){v,_:=strconv.Atoi(sc.Text());A=append(A,v)};fmt.Println(sumaDosNumeros(A[0],A[1]))}\n"
-				},
-				rust: {
-					starter: "fn suma_dos_numeros(a: i64, b: i64) -> i64 {\n    // devuelve la suma de a y b\n    0\n}\n",
-					harness: "use std::io::*;\n{{USER_CODE}}\nfn main(){let mut s=String::new();stdin().read_to_string(&mut s).unwrap();let a:Vec<i64>=s.split_whitespace().map(|x|x.parse().unwrap()).collect();println!(\"{}\",suma_dos_numeros(a[0],a[1]));}\n"
-				},
-				csharp: {
-					starter: "static long SumaDosNumeros(long a, long b) {\n    // devuelve la suma de a y b\n    return 0;\n}\n",
-					harness: "using System;using System.Linq;\nclass Program{\n{{USER_CODE}}\nstatic void Main(){var a=Console.In.ReadToEnd().Split(new[]{' ','\\n','\\r','\\t'},StringSplitOptions.RemoveEmptyEntries).Select(long.Parse).ToArray();Console.WriteLine(SumaDosNumeros(a[0],a[1]));}}\n"
-				},
-				ruby: {
-					starter: "def suma_dos_numeros(a, b)\n  # devuelve la suma de a y b\nend\n",
-					harness: "{{USER_CODE}}\na=STDIN.read.split.map(&:to_i)\nputs(suma_dos_numeros(a[0],a[1]))\n"
 				}
 			})
 			.returning({ id: problems.id });
