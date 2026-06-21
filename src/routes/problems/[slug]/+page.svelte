@@ -2,10 +2,15 @@
 	import CodeEditor from '$lib/components/CodeEditor.svelte';
 	import RuntimeChart from '$lib/components/RuntimeChart.svelte';
 	import { LANGUAGES, getLanguage } from '$lib/judge/languages';
+	import { page } from '$app/state';
 	import type { GradeResult } from '$lib/server/judge/grade';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
+
+	// Login gate (data comes from the root layout load).
+	const mustLogin = $derived(!!page.data.discordEnabled && !page.data.user);
+	let showLoginModal = $state(false);
 
 	// In function mode use the problem's per-language stub; else the generic starter.
 	function starterFor(key: string): string {
@@ -59,6 +64,10 @@
 	}
 
 	async function submit() {
+		if (mustLogin) {
+			showLoginModal = true;
+			return;
+		}
 		running = true;
 		result = null;
 		errorMsg = null;
@@ -99,17 +108,17 @@
 <div class="grid gap-6 lg:grid-cols-2">
 	<!-- Left Pane: Tabs (Description / Submissions) -->
 	<section class="flex flex-col gap-4">
-		<a href="/" class="text-xs text-zinc-500 hover:text-zinc-300">← problemas</a>
+		<a href="/" class="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-300">← problemas</a>
 		
-		<div class="flex gap-4 border-b border-zinc-800">
+		<div class="flex gap-4 border-b border-zinc-200 dark:border-zinc-800">
 			<button 
-				class="pb-2 text-sm font-medium {activeTab === 'description' ? 'border-b-2 border-emerald-500 text-white' : 'text-zinc-400 hover:text-zinc-300'}"
+				class="pb-2 text-sm font-medium {activeTab === 'description' ? 'border-b-2 border-emerald-500 text-white' : 'text-zinc-400 hover:text-zinc-700 dark:text-zinc-300'}"
 				onclick={() => activeTab = 'description'}
 			>
 				Descripción
 			</button>
 			<button 
-				class="pb-2 text-sm font-medium {activeTab === 'submissions' ? 'border-b-2 border-emerald-500 text-white' : 'text-zinc-400 hover:text-zinc-300'}"
+				class="pb-2 text-sm font-medium {activeTab === 'submissions' ? 'border-b-2 border-emerald-500 text-white' : 'text-zinc-400 hover:text-zinc-700 dark:text-zinc-300'}"
 				onclick={() => {
 					activeTab = 'submissions';
 					selectedSubmission = null;
@@ -122,22 +131,22 @@
 		{#if activeTab === 'description'}
 			<div>
 				<h1 class="mb-3 text-xl font-semibold">{data.problem.title}</h1>
-				<div class="prose-invert whitespace-pre-wrap text-sm leading-relaxed text-zinc-300">
+				<div class="prose-invert whitespace-pre-wrap text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
 					{data.problem.statement}
 				</div>
 
 				{#if data.samples.length}
-					<h2 class="mt-6 mb-2 text-sm font-semibold text-zinc-200">Ejemplos</h2>
+					<h2 class="mt-6 mb-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">Ejemplos</h2>
 					<div class="space-y-3">
 						{#each data.samples as s (s.ordinal)}
 							<div class="grid grid-cols-2 gap-2 text-xs">
 								<div>
 									<div class="mb-1 text-zinc-500">Entrada</div>
-									<pre class="rounded bg-zinc-900 p-2 whitespace-pre-wrap">{s.stdin}</pre>
+									<pre class="rounded bg-zinc-50 dark:bg-zinc-900 p-2 whitespace-pre-wrap">{s.stdin}</pre>
 								</div>
 								<div>
 									<div class="mb-1 text-zinc-500">Salida</div>
-									<pre class="rounded bg-zinc-900 p-2 whitespace-pre-wrap">{s.expectedOutput}</pre>
+									<pre class="rounded bg-zinc-50 dark:bg-zinc-900 p-2 whitespace-pre-wrap">{s.expectedOutput}</pre>
 								</div>
 							</div>
 						{/each}
@@ -159,7 +168,7 @@
 						</div>
 					</div>
 					
-					<div class="mb-4 flex items-center gap-4 rounded border border-zinc-800 bg-zinc-900/50 p-3">
+					<div class="mb-4 flex items-center gap-4 rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-3">
 						<div class="text-lg font-bold {selectedSubmission.verdict === 'Accepted' ? 'text-emerald-400' : 'text-rose-400'}">
 							{selectedSubmission.verdict}
 						</div>
@@ -170,7 +179,7 @@
 						</div>
 					</div>
 
-					<div class="h-[400px] rounded border border-zinc-800 bg-[#282c34] mb-4">
+					<div class="h-[400px] rounded border border-zinc-200 dark:border-zinc-800 bg-[#282c34] mb-4">
 						<CodeEditor value={selectedSubmission.sourceCode} lang={getLanguage(selectedSubmission.language)?.cm} readonly={true} />
 					</div>
 
@@ -185,9 +194,9 @@
 					{#if data.submissions.length === 0}
 						<div class="py-8 text-center text-sm text-zinc-500">No hay envíos aún para este problema.</div>
 					{:else}
-						<div class="overflow-hidden rounded border border-zinc-800">
+						<div class="overflow-hidden rounded border border-zinc-200 dark:border-zinc-800">
 							<table class="w-full text-left text-sm">
-								<thead class="bg-zinc-900 text-xs text-zinc-400">
+								<thead class="bg-zinc-50 dark:bg-zinc-900 text-xs text-zinc-400">
 									<tr>
 										<th class="p-3 font-medium">Estado</th>
 										<th class="p-3 font-medium">Lenguaje</th>
@@ -195,16 +204,16 @@
 										<th class="p-3 font-medium">Fecha</th>
 									</tr>
 								</thead>
-								<tbody class="divide-y divide-zinc-800">
+								<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
 									{#each data.submissions as sub (sub.id)}
 										<tr 
-											class="cursor-pointer hover:bg-zinc-800/50"
+											class="cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
 											onclick={() => selectedSubmission = sub}
 										>
 											<td class="p-3 font-medium {sub.verdict === 'Accepted' ? 'text-emerald-400' : 'text-rose-400'}">
 												{sub.verdict}
 											</td>
-											<td class="p-3 text-zinc-300">
+											<td class="p-3 text-zinc-700 dark:text-zinc-300">
 												<span class="rounded bg-zinc-800 px-2 py-0.5 text-xs">{sub.language}</span>
 											</td>
 											<td class="p-3 text-zinc-400">{sub.runtimeMs ?? 0} ms</td>
@@ -224,7 +233,7 @@
 	<section class="flex flex-col gap-3">
 		<div class="flex items-center gap-2">
 			<select
-				class="rounded border border-zinc-700 bg-zinc-900 px-2 py-1 text-sm"
+				class="rounded border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 px-2 py-1 text-sm"
 				value={langKey}
 				onchange={(e) => changeLanguage((e.target as HTMLSelectElement).value)}
 			>
@@ -267,13 +276,13 @@
 
 				{#if result.compileOutput}
 					<pre
-						class="mt-2 overflow-auto rounded bg-zinc-900 p-2 text-xs whitespace-pre-wrap text-zinc-300">{result.compileOutput}</pre>
+						class="mt-2 overflow-auto rounded bg-zinc-50 dark:bg-zinc-900 p-2 text-xs whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">{result.compileOutput}</pre>
 				{/if}
 
 				{#if result.cases.some((c) => c.isSample)}
 					<div class="mt-3 space-y-2">
 						{#each result.cases.filter((c) => c.isSample) as c (c.ordinal)}
-							<div class="rounded bg-zinc-900 p-2 text-xs">
+							<div class="rounded bg-zinc-50 dark:bg-zinc-900 p-2 text-xs">
 								<div class="mb-1 {c.passed ? 'text-emerald-400' : 'text-rose-400'}">
 									Ejemplo {c.ordinal + 1}: {c.status}
 								</div>
@@ -305,3 +314,33 @@
 		{/if}
 	</section>
 </div>
+
+{#if showLoginModal}
+	<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+		onclick={() => (showLoginModal = false)}
+	>
+		<div
+			class="w-full max-w-sm rounded-lg border border-zinc-200 bg-white p-6 text-center shadow-xl dark:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-50 dark:bg-zinc-900"
+			onclick={(e) => e.stopPropagation()}
+		>
+			<h3 class="text-lg font-semibold">Inicia sesión para enviar</h3>
+			<p class="mt-1 mb-5 text-sm text-zinc-500">
+				Necesitas tu cuenta de Discord para enviar soluciones y guardar tu progreso.
+			</p>
+			<a
+				href="/auth/discord"
+				class="flex items-center justify-center gap-2 rounded bg-[#5865F2] px-4 py-2 text-sm font-medium text-white hover:bg-[#4752c4]"
+			>
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+					<path d="M20.317 4.369A19.79 19.79 0 0 0 16.558 3c-.2.36-.43.84-.59 1.23a18.27 18.27 0 0 0-3.937 0A12.6 12.6 0 0 0 11.44 3a19.7 19.7 0 0 0-3.76 1.37C3.92 8.06 3.06 11.64 3.3 15.17a19.9 19.9 0 0 0 6.07 3.08c.49-.67.93-1.38 1.3-2.13-.71-.27-1.39-.6-2.03-.99.17-.13.34-.26.5-.4a14.2 14.2 0 0 0 12.12 0c.16.14.33.27.5.4-.64.39-1.32.72-2.03.99.37.75.81 1.46 1.3 2.13a19.9 19.9 0 0 0 6.07-3.08c.28-4.09-.74-7.64-3.08-10.8ZM9.55 13.6c-.97 0-1.77-.9-1.77-2s.78-2 1.77-2 1.78.9 1.77 2c0 1.1-.79 2-1.77 2Zm4.9 0c-.97 0-1.77-.9-1.77-2s.78-2 1.77-2 1.78.9 1.77 2c0 1.1-.78 2-1.77 2Z" />
+				</svg>
+				Entrar con Discord
+			</a>
+			<button onclick={() => (showLoginModal = false)} class="mt-3 text-xs text-zinc-500 hover:text-zinc-400">
+				Cancelar
+			</button>
+		</div>
+	</div>
+{/if}

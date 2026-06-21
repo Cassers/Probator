@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '../app.css';
+	import { onMount } from 'svelte';
 	import favicon from '$lib/assets/favicon.svg';
 	import type { LayoutData } from './$types';
 
@@ -10,6 +11,20 @@
 			? `https://cdn.discordapp.com/avatars/${data.user.discordId}/${data.user.avatar}.png?size=32`
 			: null
 	);
+
+	let dark = $state(true);
+	onMount(() => {
+		dark = document.documentElement.classList.contains('dark');
+	});
+	function toggleTheme() {
+		dark = !dark;
+		document.documentElement.classList.toggle('dark', dark);
+		try {
+			localStorage.setItem('theme', dark ? 'dark' : 'light');
+		} catch (e) {
+			void e;
+		}
+	}
 </script>
 
 <svelte:head>
@@ -17,23 +32,38 @@
 </svelte:head>
 
 <div class="min-h-screen">
-	<header class="border-b border-zinc-800">
+	<header class="border-b border-zinc-200 dark:border-zinc-800">
 		<div class="mx-auto flex max-w-5xl items-center gap-2 px-4 py-3">
 			<a href="/" class="text-lg font-semibold tracking-tight">
-				Probator<span class="text-emerald-400">.</span>
+				Probator<span class="text-emerald-500">.</span>
 			</a>
 			<span class="text-xs text-zinc-500">juez de algoritmia</span>
 
 			<div class="ml-auto flex items-center gap-3">
+				<button
+					onclick={toggleTheme}
+					title="Cambiar tema"
+					aria-label="Cambiar tema"
+					class="rounded border border-zinc-300 p-1.5 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+				>
+					{#if dark}
+						<!-- sun -->
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+					{:else}
+						<!-- moon -->
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" /></svg>
+					{/if}
+				</button>
+
 				{#if data.user}
 					<div class="flex items-center gap-2 text-sm">
 						{#if avatarUrl}
 							<img src={avatarUrl} alt="" class="h-6 w-6 rounded-full" />
 						{/if}
-						<span class="text-zinc-300">{data.user.displayName || data.user.username}</span>
+						<span class="text-zinc-700 dark:text-zinc-300">{data.user.displayName || data.user.username}</span>
 					</div>
 					<form method="POST" action="/auth/logout">
-						<button class="rounded border border-zinc-700 px-2 py-1 text-xs text-zinc-400 hover:bg-zinc-800">
+						<button class="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800">
 							Salir
 						</button>
 					</form>
