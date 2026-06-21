@@ -6,6 +6,7 @@ import type { PageServerLoad } from './$types';
 export const load: PageServerLoad = async () => {
 	const list = await db
 		.select({
+			id: problems.id,
 			slug: problems.slug,
 			title: problems.title,
 			difficulty: problems.difficulty
