@@ -74,6 +74,21 @@ export const testCases = pgTable(
 );
 
 /**
+ * A student, identified by their Discord account (the only login method).
+ * Self-contained — no dependency on any external user store.
+ */
+export const users = pgTable('users', {
+	id: serial('id').primaryKey(),
+	discordId: text('discord_id').notNull().unique(),
+	username: text('username').notNull(), // Discord username
+	displayName: text('display_name'), // Discord global_name
+	avatar: text('avatar'), // Discord avatar hash
+	role: text('role').notNull().default('student'), // student | admin
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+	lastLoginAt: timestamp('last_login_at', { withTimezone: true }).notNull().defaultNow()
+});
+
+/**
  * A single graded attempt. verdict is the overall result;
  * passedCount/totalCount summarize the per-test outcome.
  */
@@ -84,6 +99,7 @@ export const submissions = pgTable(
 		problemId: integer('problem_id')
 			.notNull()
 			.references(() => problems.id, { onDelete: 'cascade' }),
+		userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
 		language: text('language').notNull(), // key into lib/judge/languages.ts
 		sourceCode: text('source_code').notNull(),
 		verdict: text('verdict').notNull(), // Accepted | Wrong Answer | Time Limit Exceeded | ...
@@ -93,10 +109,11 @@ export const submissions = pgTable(
 		memoryKb: integer('memory_kb'),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 	},
-	(t) => [index('submissions_problem_idx').on(t.problemId)]
+	(t) => [index('submissions_problem_idx').on(t.problemId), index('submissions_user_idx').on(t.userId)]
 );
 
 export type Problem = typeof problems.$inferSelect;
 export type TestCase = typeof testCases.$inferSelect;
 export type Submission = typeof submissions.$inferSelect;
 export type LanguageTemplate = typeof languageTemplates.$inferSelect;
+export type User = typeof users.$inferSelect;

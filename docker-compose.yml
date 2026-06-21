@@ -46,6 +46,12 @@ services:
       PISTON_URL: http://piston:2000
       SEED: '1'
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      # Discord OAuth (login de estudiantes). Vacío = login deshabilitado.
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:-}
+      # Opcional: exigir pertenencia a un servidor de Discord.
+      DISCORD_GUILD_ID: ${DISCORD_GUILD_ID:-}
     depends_on:
       - postgres
       - piston

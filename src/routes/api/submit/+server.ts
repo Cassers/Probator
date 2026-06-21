@@ -6,11 +6,18 @@ import { getLanguage } from '$lib/judge/languages';
 import { grade } from '$lib/server/judge/grade';
 import { wrapSource } from '$lib/judge/wrap';
 import { scanSource } from '$lib/server/judge/blocklist';
+import { discordEnabled } from '$lib/server/discord';
 import type { RequestHandler } from './$types';
 
 const MAX_SOURCE = 64 * 1024; // 64 KB guard against abuse
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
+	// If auth is configured, require a logged-in student. If Discord isn't set up
+	// (community deploy without auth), allow anonymous submissions.
+	if (discordEnabled() && !locals.user) {
+		throw error(401, 'Inicia sesión con Discord para enviar soluciones');
+	}
+
 	const body = await request.json().catch(() => null);
 	if (!body) throw error(400, 'JSON inválido');
 
@@ -77,6 +84,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	await db.insert(submissions).values({
 		problemId: problem.id,
+		userId: locals.user?.id ?? null,
 		language: language.key,
 		sourceCode: source,
 		verdict: result.verdict,
