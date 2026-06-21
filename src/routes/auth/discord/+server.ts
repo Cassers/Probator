@@ -6,13 +6,19 @@ import type { RequestHandler } from './$types';
 export const GET: RequestHandler = ({ url, cookies }) => {
 	if (!discordEnabled()) throw error(503, 'Login con Discord no está configurado');
 	const state = randomBytes(16).toString('hex');
-	cookies.set('probator_oauth_state', state, {
+	const opts = {
 		path: '/',
 		httpOnly: true,
-		sameSite: 'lax',
+		sameSite: 'lax' as const,
 		secure: url.protocol === 'https:',
 		maxAge: 600
-	});
+	};
+	cookies.set('probator_oauth_state', state, opts);
+	// Remember where to return after login (local paths only).
+	const next = url.searchParams.get('next');
+	if (next && next.startsWith('/') && !next.startsWith('//')) {
+		cookies.set('probator_oauth_next', next, opts);
+	}
 	const redirectUri = `${url.origin}/auth/discord/callback`;
 	throw redirect(302, authorizeUrl(redirectUri, state));
 };

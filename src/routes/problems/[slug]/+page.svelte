@@ -3,10 +3,22 @@
 	import RuntimeChart from '$lib/components/RuntimeChart.svelte';
 	import { LANGUAGES, getLanguage } from '$lib/judge/languages';
 	import { page } from '$app/state';
+	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
 	import type { GradeResult } from '$lib/server/judge/grade';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
+
+	// Auto-save the editor per problem+language so code survives navigation/login.
+	const draftKey = (lang: string) => `probator:draft:${data.problem.slug}:${lang}`;
+	function loadFor(lang: string): string {
+		if (browser) {
+			const d = localStorage.getItem(draftKey(lang));
+			if (d != null) return d;
+		}
+		return starterFor(lang);
+	}
 
 	// Login gate (data comes from the root layout load).
 	const mustLogin = $derived(!!page.data.discordEnabled && !page.data.user);
@@ -56,12 +68,19 @@
 	);
 
 	function changeLanguage(key: string) {
-		// Only overwrite the editor if the user hasn't diverged from the starter.
-		if (source.trim() === starterFor(langKey).trim() || source.trim() === '') {
-			source = starterFor(key);
-		}
 		langKey = key;
+		source = loadFor(key); // restore this language's draft, or its starter
 	}
+
+	// Restore any saved draft for the current language on load.
+	onMount(() => {
+		source = loadFor(langKey);
+	});
+
+	// Persist the current language's draft as the student types.
+	$effect(() => {
+		if (browser) localStorage.setItem(draftKey(langKey), source);
+	});
 
 	async function submit() {
 		if (mustLogin) {
@@ -330,7 +349,7 @@
 				Necesitas tu cuenta de Discord para enviar soluciones y guardar tu progreso.
 			</p>
 			<a
-				href="/auth/discord"
+				href="/auth/discord?next={encodeURIComponent(page.url.pathname)}"
 				class="flex items-center justify-center gap-2 rounded bg-[#5865F2] px-4 py-2 text-sm font-medium text-white hover:bg-[#4752c4]"
 			>
 				<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

@@ -5,10 +5,11 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
 		<script>
-			// Apply saved theme before paint to avoid a flash. Default: dark.
+			// Apply theme before paint to avoid a flash. Default: auto (follow OS).
 			try {
-				const t = localStorage.getItem('theme');
-				if (t === 'dark' || (t === null)) document.documentElement.classList.add('dark');
+				var t = localStorage.getItem('theme');
+				var dark = t === 'dark' || ((t === null || t === 'auto') && matchMedia('(prefers-color-scheme: dark)').matches);
+				if (dark) document.documentElement.classList.add('dark');
 			} catch (e) {}
 		</script>
 		%sveltekit.head%

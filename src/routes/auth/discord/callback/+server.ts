@@ -58,5 +58,8 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		secure: url.protocol === 'https:',
 		maxAge: 60 * 60 * 24 * 30
 	});
-	throw redirect(303, '/');
+
+	const next = cookies.get('probator_oauth_next');
+	cookies.delete('probator_oauth_next', { path: '/' });
+	throw redirect(303, next && next.startsWith('/') && !next.startsWith('//') ? next : '/');
 };
