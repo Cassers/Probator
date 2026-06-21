@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { LANGUAGES } from '$lib/judge/languages';
+	import { generateTemplates, SUPPORTED_TYPES, type AbstractType } from '$lib/judge/codegen';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -22,6 +23,24 @@
 	let saving = $state(false);
 	let errorMsg = $state<string | null>(null);
 	const originalSlug = data.creating ? undefined : data.problem.slug;
+
+	// --- Function signature → auto-generate templates for all languages ---
+	let functionName = $state(data.signature?.functionName ?? 'resolver');
+	let sigParams = $state<{ name: string; type: AbstractType }[]>(
+		data.signature?.params?.map((p) => ({ ...p })) ?? [{ name: 'nums', type: 'int[]' as AbstractType }]
+	);
+	let returnType = $state<AbstractType>(data.signature?.returnType ?? 'int');
+
+	function addParam() {
+		sigParams = [...sigParams, { name: `arg${sigParams.length + 1}`, type: 'int' as AbstractType }];
+	}
+	function removeParam(i: number) {
+		sigParams = sigParams.filter((_, idx) => idx !== i);
+	}
+	function applyTemplatesFromSignature() {
+		const sig = { functionName: functionName.trim(), params: sigParams.map((p) => ({ ...p })), returnType };
+		templates = generateTemplates(sig);
+	}
 
 	// --- Auto-generate cases from a reference solution ---
 	let genOpen = $state(false);
@@ -135,7 +154,11 @@
 					timeLimitMs: Number(timeLimitMs),
 					memoryLimitKb: Number(memoryLimitKb),
 					cases,
-					templates: mode === 'function' ? templates : {}
+					templates: mode === 'function' ? templates : {},
+					signature:
+						mode === 'function'
+							? { functionName: functionName.trim(), params: sigParams, returnType }
+							: null
 				})
 			});
 			if (!res.ok) {
@@ -315,6 +338,53 @@
 
 <!-- Function-mode templates -->
 {#if mode === 'function'}
+	<section class="mt-6 rounded border border-sky-900/60 bg-sky-950/20 p-4">
+		<h2 class="mb-1 text-sm font-semibold text-zinc-200">Firma de la función</h2>
+		<p class="mb-3 text-xs text-zinc-400">
+			Define el nombre, los parámetros (con tipo) y el tipo de retorno. Con esto, Probator
+			<b>genera el starter y el harness de todos los lenguajes</b> automáticamente.
+			Formato de entrada: cada escalar es un token; cada arreglo es su longitud seguida de los elementos.
+		</p>
+		<div class="flex flex-wrap items-end gap-3">
+			<label class="text-sm">
+				<span class="text-zinc-500 text-xs">Nombre de la función</span>
+				<input bind:value={functionName} class="mt-1 block w-56 rounded border border-zinc-700 bg-zinc-900 px-2 py-1.5 font-mono text-sm" />
+			</label>
+			<label class="text-sm">
+				<span class="text-zinc-500 text-xs">Tipo de retorno</span>
+				<select bind:value={returnType} class="mt-1 block rounded border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-sm">
+					{#each SUPPORTED_TYPES as t (t)}<option value={t}>{t}</option>{/each}
+				</select>
+			</label>
+		</div>
+
+		<div class="mt-3">
+			<div class="mb-1 flex items-center gap-2">
+				<span class="text-xs text-zinc-500">Parámetros</span>
+				<button onclick={addParam} class="rounded border border-zinc-700 px-2 py-0.5 text-xs text-zinc-300 hover:bg-zinc-800">+ parámetro</button>
+			</div>
+			<div class="space-y-2">
+				{#each sigParams as p, i (i)}
+					<div class="flex items-center gap-2">
+						<input bind:value={p.name} placeholder="nombre" class="w-44 rounded border border-zinc-700 bg-zinc-900 px-2 py-1 font-mono text-sm" />
+						<select bind:value={p.type} class="rounded border border-zinc-700 bg-zinc-900 px-2 py-1 text-sm">
+							{#each SUPPORTED_TYPES as t (t)}<option value={t}>{t}</option>{/each}
+						</select>
+						<button onclick={() => removeParam(i)} class="text-xs text-rose-400 hover:text-rose-300">quitar</button>
+					</div>
+				{/each}
+			</div>
+		</div>
+
+		<button
+			onclick={applyTemplatesFromSignature}
+			class="mt-4 rounded bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-500"
+		>
+			Generar plantillas para todos los lenguajes
+		</button>
+		<span class="ml-2 text-xs text-zinc-500">(reemplaza las plantillas de abajo)</span>
+	</section>
+
 	<section class="mt-6">
 		<h2 class="mb-1 text-sm font-semibold text-zinc-200">Plantillas por lenguaje (modo función)</h2>
 		<p class="mb-3 text-xs text-zinc-500">

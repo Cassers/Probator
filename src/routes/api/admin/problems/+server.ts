@@ -16,6 +16,7 @@ interface Body {
 	memoryLimitKb: number;
 	cases: { stdin: string; expectedOutput: string; isSample: boolean }[];
 	templates: Record<string, { starter: string; harness: string }>;
+	signature?: unknown;
 }
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -56,6 +57,8 @@ export const POST: RequestHandler = async ({ request }) => {
 			statement: b.statement ?? '',
 			difficulty: b.difficulty || 'easy',
 			mode: b.mode,
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			signature: (b.mode === 'function' ? (b.signature ?? null) : null) as any,
 			timeLimitMs,
 			memoryLimitKb
 		};

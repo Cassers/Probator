@@ -5,8 +5,10 @@ import {
 	integer,
 	boolean,
 	timestamp,
+	jsonb,
 	index
 } from 'drizzle-orm/pg-core';
+import type { Signature } from '$lib/judge/codegen';
 
 /**
  * A problem the student must solve. The statement is markdown.
@@ -24,6 +26,9 @@ export const problems = pgTable('problems', {
 	statement: text('statement').notNull(),
 	difficulty: text('difficulty').notNull().default('easy'), // easy | medium | hard
 	mode: text('mode').notNull().default('stdio'), // stdio | function
+	// Function signature (name + typed params + return type) used to generate
+	// per-language starter/harness. Null for stdio problems.
+	signature: jsonb('signature').$type<Signature>(),
 	timeLimitMs: integer('time_limit_ms').notNull().default(2000),
 	memoryLimitKb: integer('memory_limit_kb').notNull().default(128000),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()

@@ -2,6 +2,7 @@ import { error } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { problems, testCases, languageTemplates } from '$lib/server/db/schema';
 import { eq, asc } from 'drizzle-orm';
+import type { Signature } from '$lib/judge/codegen';
 import type { PageServerLoad } from './$types';
 
 const EMPTY = {
@@ -20,7 +21,8 @@ export const load: PageServerLoad = async ({ params }) => {
 			creating: true,
 			problem: EMPTY,
 			cases: [{ stdin: '', expectedOutput: '', isSample: true }],
-			templates: {} as Record<string, { starter: string; harness: string }>
+			templates: {} as Record<string, { starter: string; harness: string }>,
+			signature: null as Signature | null
 		};
 	}
 
@@ -53,6 +55,7 @@ export const load: PageServerLoad = async ({ params }) => {
 			memoryLimitKb: problem.memoryLimitKb
 		},
 		cases: cases.length ? cases : [{ stdin: '', expectedOutput: '', isSample: true }],
-		templates
+		templates,
+		signature: (problem.signature ?? null) as Signature | null
 	};
 };
