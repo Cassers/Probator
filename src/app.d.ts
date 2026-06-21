@@ -12,6 +12,7 @@ declare global {
 				avatar: string | null;
 				role: string;
 			} | null;
+			app: { id: number; name: string } | null;
 		}
 		// interface PageData {}
 		// interface PageState {}

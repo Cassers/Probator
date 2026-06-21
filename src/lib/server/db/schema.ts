@@ -19,6 +19,17 @@ import type { Signature } from '$lib/judge/codegen';
  *  - 'function' — LeetCode-style: student implements a function; a per-language
  *    harness (see languageTemplates) wraps it to read input and print the result.
  */
+/**
+ * An API consumer (e.g. Discamus Academy). Holds a hashed key; owns the problems
+ * it creates via the REST API and may only edit/delete its own.
+ */
+export const apps = pgTable('apps', {
+	id: serial('id').primaryKey(),
+	name: text('name').notNull(),
+	keyHash: text('key_hash').notNull().unique(),
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+});
+
 export const problems = pgTable('problems', {
 	id: serial('id').primaryKey(),
 	slug: text('slug').notNull().unique(),
@@ -26,6 +37,8 @@ export const problems = pgTable('problems', {
 	statement: text('statement').notNull(),
 	difficulty: text('difficulty').notNull().default('easy'), // easy | medium | hard
 	mode: text('mode').notNull().default('stdio'), // stdio | function
+	// Null = created via the web admin (system-owned). Set = the API app that owns it.
+	ownerAppId: integer('owner_app_id').references(() => apps.id, { onDelete: 'set null' }),
 	// Function signature (name + typed params + return type) used to generate
 	// per-language starter/harness. Null for stdio problems.
 	signature: jsonb('signature').$type<Signature>(),
@@ -117,3 +130,4 @@ export type TestCase = typeof testCases.$inferSelect;
 export type Submission = typeof submissions.$inferSelect;
 export type LanguageTemplate = typeof languageTemplates.$inferSelect;
 export type User = typeof users.$inferSelect;
+export type App = typeof apps.$inferSelect;
