@@ -31,6 +31,7 @@ services:
       DATABASE_URL: postgres://probator:${POSTGRES_PASSWORD:-probator}@postgres:5432/probator
       PISTON_URL: http://piston:2000
       SEED: '1'
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
     depends_on:
       - postgres
       - piston

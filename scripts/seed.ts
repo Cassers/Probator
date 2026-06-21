@@ -272,6 +272,14 @@ const data: SeedProblem[] = [
 ];
 
 async function main() {
+	// Seed only when the DB is empty, so edits made via the admin panel survive
+	// redeploys. Force a reseed by truncating the problems table.
+	const existing = await db.select({ id: problems.id }).from(problems).limit(1);
+	if (existing.length > 0) {
+		console.log('Probator ya tiene problemas — omito el seed (las ediciones del admin se conservan).');
+		await client.end();
+		return;
+	}
 	console.log('Seeding Probator…');
 	for (const p of data) {
 		const modeVal = p.mode ?? 'stdio';
