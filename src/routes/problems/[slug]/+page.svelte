@@ -42,6 +42,14 @@
 
 	const currentLang = $derived(getLanguage(langKey)!);
 
+	// In function mode only offer languages the problem has a harness for; in
+	// stdio mode all languages work.
+	const availableLanguages = $derived(
+		data.problem.mode === 'function'
+			? LANGUAGES.filter((l) => data.starters?.[l.key])
+			: LANGUAGES
+	);
+
 	function changeLanguage(key: string) {
 		// Only overwrite the editor if the user hasn't diverged from the starter.
 		if (source.trim() === starterFor(langKey).trim() || source.trim() === '') {
@@ -220,7 +228,7 @@
 				value={langKey}
 				onchange={(e) => changeLanguage((e.target as HTMLSelectElement).value)}
 			>
-				{#each LANGUAGES as l (l.key)}
+				{#each availableLanguages as l (l.key)}
 					<option value={l.key}>{l.label}</option>
 				{/each}
 			</select>
