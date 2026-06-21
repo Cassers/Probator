@@ -23,6 +23,68 @@
 	let errorMsg = $state<string | null>(null);
 	const originalSlug = data.creating ? undefined : data.problem.slug;
 
+	// --- Auto-generate cases from a reference solution ---
+	let genOpen = $state(false);
+	let refLang = $state('python');
+	let refSource = $state('');
+	let genInputMode = $state<'generator' | 'manual'>('generator');
+	let genLang = $state('python');
+	let genSource = $state(
+		'# Recibe un índice por stdin (0,1,2…) y debe IMPRIMIR una entrada de prueba.\n' +
+			'import sys, random\nrandom.seed(int(sys.stdin.read().strip() or 0))\na = random.randint(-1000, 1000)\nb = random.randint(-1000, 1000)\nprint(a, b)\n'
+	);
+	let genCount = $state(8);
+	let genSample = $state(2);
+	let manualInputs = $state('');
+	let generating = $state(false);
+	let genError = $state<string | null>(null);
+
+	async function generateCases() {
+		generating = true;
+		genError = null;
+		try {
+			const body: Record<string, unknown> = {
+				mode,
+				language: refLang,
+				referenceSource: refSource,
+				harness: mode === 'function' ? templates[refLang]?.harness : undefined,
+				timeLimitMs: Number(timeLimitMs),
+				memoryLimitKb: Number(memoryLimitKb),
+				sampleCount: Number(genSample)
+			};
+			if (genInputMode === 'generator') {
+				body.generatorSource = genSource;
+				body.generatorLanguage = genLang;
+				body.count = Number(genCount);
+			} else {
+				body.inputs = manualInputs
+					.split(/^---$/m)
+					.map((s) => s.replace(/^\n+|\n+$/g, ''))
+					.filter((s) => s !== '');
+			}
+			const res = await fetch('/api/admin/generate-cases', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(body)
+			});
+			if (!res.ok) {
+				genError = (await res.json().catch(() => ({}))).message ?? `Error ${res.status}`;
+				return;
+			}
+			const d = await res.json();
+			if (!d.cases?.length) {
+				genError = 'No se generaron casos';
+				return;
+			}
+			cases = d.cases;
+			genOpen = false;
+		} catch {
+			genError = 'No se pudo contactar al servidor';
+		} finally {
+			generating = false;
+		}
+	}
+
 	function slugify(s: string) {
 		return s
 			.toLowerCase()
@@ -172,8 +234,59 @@
 	<section class="flex flex-col gap-3">
 		<div class="flex items-center justify-between">
 			<h2 class="text-sm font-semibold text-zinc-200">Casos de prueba</h2>
-			<button onclick={addCase} class="rounded border border-zinc-700 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-800">+ caso</button>
+			<div class="flex gap-2">
+				<button onclick={() => (genOpen = !genOpen)} class="rounded border border-emerald-800 bg-emerald-950/30 px-2 py-1 text-xs text-emerald-300 hover:bg-emerald-950/60">✨ generar</button>
+				<button onclick={addCase} class="rounded border border-zinc-700 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-800">+ caso</button>
+			</div>
 		</div>
+
+		{#if genOpen}
+			<div class="rounded border border-emerald-900/60 bg-emerald-950/20 p-3">
+				<p class="mb-3 text-xs text-zinc-400">
+					Genera casos automáticamente: el sistema corre tu <b>solución de referencia</b> (correcta)
+					sobre las entradas y guarda sus salidas como esperadas.
+					{#if mode === 'function'}<br />En modo función, la referencia es la <b>implementación correcta de la función</b> (usa el harness del lenguaje elegido).{/if}
+				</p>
+
+				<div class="mb-2 flex items-center gap-2 text-xs">
+					<span class="text-zinc-500">Lenguaje de referencia</span>
+					<select bind:value={refLang} class="rounded border border-zinc-700 bg-zinc-900 px-2 py-1">
+						{#each LANGUAGES as l (l.key)}<option value={l.key}>{l.label}</option>{/each}
+					</select>
+				</div>
+				<textarea bind:value={refSource} rows="6" placeholder="Solución de referencia (correcta)…" class="mb-3 w-full rounded bg-zinc-950 border border-zinc-800 p-2 font-mono text-xs"></textarea>
+
+				<div class="mb-2 flex gap-3 text-xs">
+					<label class="flex items-center gap-1"><input type="radio" value="generator" bind:group={genInputMode} /> Generador de entradas</label>
+					<label class="flex items-center gap-1"><input type="radio" value="manual" bind:group={genInputMode} /> Entradas manuales</label>
+				</div>
+
+				{#if genInputMode === 'generator'}
+					<div class="mb-2 flex flex-wrap items-center gap-2 text-xs">
+						<span class="text-zinc-500">Generador en</span>
+						<select bind:value={genLang} class="rounded border border-zinc-700 bg-zinc-900 px-2 py-1">
+							{#each LANGUAGES as l (l.key)}<option value={l.key}>{l.label}</option>{/each}
+						</select>
+						<span class="text-zinc-500">· nº casos</span>
+						<input type="number" bind:value={genCount} min="1" max="60" class="w-16 rounded border border-zinc-700 bg-zinc-900 px-2 py-1" />
+						<span class="text-zinc-500">· visibles</span>
+						<input type="number" bind:value={genSample} min="0" class="w-16 rounded border border-zinc-700 bg-zinc-900 px-2 py-1" />
+					</div>
+					<textarea bind:value={genSource} rows="6" class="w-full rounded bg-zinc-950 border border-zinc-800 p-2 font-mono text-xs"></textarea>
+				{:else}
+					<p class="mb-1 text-xs text-zinc-500">Una entrada por bloque, separadas por una línea con <code>---</code>.</p>
+					<textarea bind:value={manualInputs} rows="6" placeholder={'2 3\n---\n-4 10\n---\n0 0'} class="w-full rounded bg-zinc-950 border border-zinc-800 p-2 font-mono text-xs"></textarea>
+				{/if}
+
+				{#if genError}<div class="mt-2 text-xs text-rose-400">{genError}</div>{/if}
+				<div class="mt-3 flex items-center gap-2">
+					<button onclick={generateCases} disabled={generating} class="rounded bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-50">
+						{generating ? 'Generando…' : 'Generar casos'}
+					</button>
+					<span class="text-xs text-zinc-500">reemplaza los casos actuales</span>
+				</div>
+			</div>
+		{/if}
 		{#each cases as c, i (i)}
 			<div class="rounded border border-zinc-800 p-3">
 				<div class="mb-2 flex items-center justify-between">
