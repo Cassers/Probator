@@ -5,6 +5,7 @@ import { eq, and, asc } from 'drizzle-orm';
 import { getLanguage } from '$lib/judge/languages';
 import { grade } from '$lib/server/judge/grade';
 import { wrapSource } from '$lib/judge/wrap';
+import { scanSource } from '$lib/server/judge/blocklist';
 import type { RequestHandler } from './$types';
 
 const MAX_SOURCE = 64 * 1024; // 64 KB guard against abuse
@@ -26,6 +27,12 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	const language = getLanguage(langKey);
 	if (!language) throw error(400, `Lenguaje no soportado: ${langKey}`);
+
+	// Defense-in-depth: reject obviously dangerous APIs before executing.
+	const scan = scanSource(language.key, source);
+	if (scan.blocked) {
+		throw error(422, `Código rechazado por seguridad — usa API no permitida: ${scan.matches.join(', ')}`);
+	}
 
 	const [problem] = await db.select().from(problems).where(eq(problems.slug, slug)).limit(1);
 	if (!problem) throw error(404, 'Problema no encontrado');
