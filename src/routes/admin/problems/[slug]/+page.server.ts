@@ -10,7 +10,7 @@ const EMPTY = {
 	title: '',
 	statement: '',
 	difficulty: 'easy',
-	mode: 'stdio' as 'stdio' | 'function',
+	mode: 'function' as 'stdio' | 'function',
 	timeLimitMs: 2000,
 	memoryLimitKb: 128000
 };

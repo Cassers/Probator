@@ -11,7 +11,8 @@
 	let title = $state(data.problem.title);
 	let statement = $state(data.problem.statement);
 	let difficulty = $state(data.problem.difficulty);
-	let mode = $state<'stdio' | 'function'>(data.problem.mode);
+	// Solo modo función (LeetCode): stdio fue retirado del editor.
+	let mode = $state<'stdio' | 'function'>('function');
 	let timeLimitMs = $state(data.problem.timeLimitMs);
 	let memoryLimitKb = $state(data.problem.memoryLimitKb);
 	let cases = $state(data.cases.map((c) => ({ ...c })));
@@ -43,11 +44,10 @@
 	}
 
 	// --- Auto-generate cases from a reference solution ---
-	let genOpen = $state(false);
+	// Un solo lenguaje: el mismo se usa para la solución de referencia y el generador.
 	let refLang = $state('python');
 	let refSource = $state('');
 	let genInputMode = $state<'generator' | 'manual'>('generator');
-	let genLang = $state('python');
 	let genSource = $state(
 		'# Recibe un índice por stdin (0,1,2…) y debe IMPRIMIR una entrada de prueba.\n' +
 			'import sys, random\nrandom.seed(int(sys.stdin.read().strip() or 0))\na = random.randint(-1000, 1000)\nb = random.randint(-1000, 1000)\nprint(a, b)\n'
@@ -73,7 +73,7 @@
 			};
 			if (genInputMode === 'generator') {
 				body.generatorSource = genSource;
-				body.generatorLanguage = genLang;
+				body.generatorLanguage = refLang;
 				body.count = Number(genCount);
 			} else {
 				body.inputs = manualInputs
@@ -96,7 +96,6 @@
 				return;
 			}
 			cases = d.cases;
-			genOpen = false;
 		} catch {
 			genError = 'No se pudo contactar al servidor';
 		} finally {
@@ -220,23 +219,14 @@
 				class="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 font-mono text-sm"
 			/>
 		</label>
-		<div class="grid grid-cols-2 gap-3">
-			<label class="text-sm">
-				<span class="text-zinc-400">Dificultad</span>
-				<select bind:value={difficulty} class="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-2 text-sm">
-					<option value="easy">easy</option>
-					<option value="medium">medium</option>
-					<option value="hard">hard</option>
-				</select>
-			</label>
-			<label class="text-sm">
-				<span class="text-zinc-400">Modo</span>
-				<select bind:value={mode} class="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-2 text-sm">
-					<option value="stdio">stdio (programa completo)</option>
-					<option value="function">function (LeetCode)</option>
-				</select>
-			</label>
-		</div>
+		<label class="text-sm">
+			<span class="text-zinc-400">Dificultad</span>
+			<select bind:value={difficulty} class="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-2 text-sm">
+				<option value="easy">easy</option>
+				<option value="medium">medium</option>
+				<option value="hard">hard</option>
+			</select>
+		</label>
 		<div class="grid grid-cols-2 gap-3">
 			<label class="text-sm">
 				<span class="text-zinc-400">Tiempo límite (ms)</span>
@@ -257,59 +247,50 @@
 	<section class="flex flex-col gap-3">
 		<div class="flex items-center justify-between">
 			<h2 class="text-sm font-semibold text-zinc-200">Casos de prueba</h2>
-			<div class="flex gap-2">
-				<button onclick={() => (genOpen = !genOpen)} class="rounded border border-emerald-800 bg-emerald-950/30 px-2 py-1 text-xs text-emerald-300 hover:bg-emerald-950/60">✨ generar</button>
-				<button onclick={addCase} class="rounded border border-zinc-700 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-800">+ caso</button>
-			</div>
+			<button onclick={addCase} class="rounded border border-zinc-700 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-800">+ caso de ejemplo</button>
 		</div>
 
-		{#if genOpen}
-			<div class="rounded border border-emerald-900/60 bg-emerald-950/20 p-3">
-				<p class="mb-3 text-xs text-zinc-400">
-					Genera casos automáticamente: el sistema corre tu <b>solución de referencia</b> (correcta)
-					sobre las entradas y guarda sus salidas como esperadas.
-					{#if mode === 'function'}<br />En modo función, la referencia es la <b>implementación correcta de la función</b> (usa el harness del lenguaje elegido).{/if}
-				</p>
+		<div class="rounded border border-emerald-900/60 bg-emerald-950/20 p-3">
+			<p class="mb-3 text-xs text-zinc-400">
+				Genera los casos automáticamente: Probator corre tu <b>solución de referencia</b> (la
+				implementación correcta de la función) sobre las entradas y guarda sus salidas como
+				esperadas. Los casos marcados como <b>visibles</b> se le muestran al estudiante como ejemplos.
+			</p>
 
-				<div class="mb-2 flex items-center gap-2 text-xs">
-					<span class="text-zinc-500">Lenguaje de referencia</span>
-					<select bind:value={refLang} class="rounded border border-zinc-700 bg-zinc-900 px-2 py-1">
-						{#each LANGUAGES as l (l.key)}<option value={l.key}>{l.label}</option>{/each}
-					</select>
-				</div>
-				<textarea bind:value={refSource} rows="6" placeholder="Solución de referencia (correcta)…" class="mb-3 w-full rounded bg-zinc-950 border border-zinc-800 p-2 font-mono text-xs"></textarea>
-
-				<div class="mb-2 flex gap-3 text-xs">
-					<label class="flex items-center gap-1"><input type="radio" value="generator" bind:group={genInputMode} /> Generador de entradas</label>
-					<label class="flex items-center gap-1"><input type="radio" value="manual" bind:group={genInputMode} /> Entradas manuales</label>
-				</div>
-
-				{#if genInputMode === 'generator'}
-					<div class="mb-2 flex flex-wrap items-center gap-2 text-xs">
-						<span class="text-zinc-500">Generador en</span>
-						<select bind:value={genLang} class="rounded border border-zinc-700 bg-zinc-900 px-2 py-1">
-							{#each LANGUAGES as l (l.key)}<option value={l.key}>{l.label}</option>{/each}
-						</select>
-						<span class="text-zinc-500">· nº casos</span>
-						<input type="number" bind:value={genCount} min="1" max="60" class="w-16 rounded border border-zinc-700 bg-zinc-900 px-2 py-1" />
-						<span class="text-zinc-500">· visibles</span>
-						<input type="number" bind:value={genSample} min="0" class="w-16 rounded border border-zinc-700 bg-zinc-900 px-2 py-1" />
-					</div>
-					<textarea bind:value={genSource} rows="6" class="w-full rounded bg-zinc-950 border border-zinc-800 p-2 font-mono text-xs"></textarea>
-				{:else}
-					<p class="mb-1 text-xs text-zinc-500">Una entrada por bloque, separadas por una línea con <code>---</code>.</p>
-					<textarea bind:value={manualInputs} rows="6" placeholder={'2 3\n---\n-4 10\n---\n0 0'} class="w-full rounded bg-zinc-950 border border-zinc-800 p-2 font-mono text-xs"></textarea>
-				{/if}
-
-				{#if genError}<div class="mt-2 text-xs text-rose-400">{genError}</div>{/if}
-				<div class="mt-3 flex items-center gap-2">
-					<button onclick={generateCases} disabled={generating} class="rounded bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-50">
-						{generating ? 'Generando…' : 'Generar casos'}
-					</button>
-					<span class="text-xs text-zinc-500">reemplaza los casos actuales</span>
-				</div>
+			<div class="mb-2 flex items-center gap-2 text-xs">
+				<span class="text-zinc-500">Lenguaje</span>
+				<select bind:value={refLang} class="rounded border border-zinc-700 bg-zinc-900 px-2 py-1">
+					{#each LANGUAGES as l (l.key)}<option value={l.key}>{l.label}</option>{/each}
+				</select>
 			</div>
-		{/if}
+			<textarea bind:value={refSource} rows="6" placeholder="Solución de referencia (correcta)…" class="mb-3 w-full rounded bg-zinc-950 border border-zinc-800 p-2 font-mono text-xs"></textarea>
+
+			<div class="mb-2 flex gap-3 text-xs">
+				<label class="flex items-center gap-1"><input type="radio" value="generator" bind:group={genInputMode} /> Generador de entradas</label>
+				<label class="flex items-center gap-1"><input type="radio" value="manual" bind:group={genInputMode} /> Entradas manuales</label>
+			</div>
+
+			{#if genInputMode === 'generator'}
+				<div class="mb-2 flex flex-wrap items-center gap-2 text-xs">
+					<span class="text-zinc-500">nº casos</span>
+					<input type="number" bind:value={genCount} min="1" max="60" class="w-16 rounded border border-zinc-700 bg-zinc-900 px-2 py-1" />
+					<span class="text-zinc-500">· visibles</span>
+					<input type="number" bind:value={genSample} min="0" class="w-16 rounded border border-zinc-700 bg-zinc-900 px-2 py-1" />
+				</div>
+				<textarea bind:value={genSource} rows="6" class="w-full rounded bg-zinc-950 border border-zinc-800 p-2 font-mono text-xs"></textarea>
+			{:else}
+				<p class="mb-1 text-xs text-zinc-500">Una entrada por bloque, separadas por una línea con <code>---</code>.</p>
+				<textarea bind:value={manualInputs} rows="6" placeholder={'2 3\n---\n-4 10\n---\n0 0'} class="w-full rounded bg-zinc-950 border border-zinc-800 p-2 font-mono text-xs"></textarea>
+			{/if}
+
+			{#if genError}<div class="mt-2 text-xs text-rose-400">{genError}</div>{/if}
+			<div class="mt-3 flex items-center gap-2">
+				<button onclick={generateCases} disabled={generating} class="rounded bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-50">
+					{generating ? 'Generando…' : 'Generar casos'}
+				</button>
+				<span class="text-xs text-zinc-500">reemplaza los casos de abajo (añade tus ejemplos manuales después de generar)</span>
+			</div>
+		</div>
 		{#each cases as c, i (i)}
 			<div class="rounded border border-zinc-800 p-3">
 				<div class="mb-2 flex items-center justify-between">
