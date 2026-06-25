@@ -17,9 +17,14 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 		.orderBy(asc(testCases.ordinal));
 
 	const langs = await db
-		.select({ language: languageTemplates.language })
+		.select({ language: languageTemplates.language, starter: languageTemplates.starter })
 		.from(languageTemplates)
 		.where(eq(languageTemplates.problemId, p.id));
+
+	// Mapa lenguaje→starter: consumidores (p. ej. Dédalo) necesitan el stub de la
+	// función (nombre + parámetros) para problemas en modo `function` sin signature.
+	const starters: Record<string, string> = {};
+	for (const l of langs) starters[l.language] = l.starter;
 
 	return json({
 		id: p.id,
@@ -32,6 +37,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 		timeLimitMs: p.timeLimitMs,
 		memoryLimitKb: p.memoryLimitKb,
 		languages: langs.map((l) => l.language),
+		starters,
 		samples,
 		mine: p.ownerAppId === locals.app!.id
 	});
