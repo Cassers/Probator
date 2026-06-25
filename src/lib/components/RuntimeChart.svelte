@@ -40,16 +40,16 @@
 	let myBinIdxClamped = $derived(Math.min(Math.max(myBinIdx, 0), BIN_COUNT - 1));
 </script>
 
-<div class="mt-6 p-4 bg-zinc-900 rounded-lg border border-zinc-800">
+<div class="mt-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
 	<div class="flex items-center mb-4">
 		<div class="flex items-baseline gap-2">
-			<span class="text-zinc-300 font-medium flex items-center gap-1">
+			<span class="text-zinc-600 dark:text-zinc-300 font-medium flex items-center gap-1">
 				<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
 					<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
 				</svg>
 				Runtime
 			</span>
-			<span class="text-2xl font-bold text-white ml-2">{runtimeMs} <span class="text-sm font-normal text-zinc-500">ms</span></span>
+			<span class="text-2xl font-bold text-zinc-900 dark:text-white ml-2">{runtimeMs} <span class="text-sm font-normal text-zinc-500">ms</span></span>
 		</div>
 		{#if total > 0}
 			<div class="ml-auto flex items-center gap-1 text-sm">
@@ -65,7 +65,7 @@
 			{@const heightPct = (count / maxCount) * 100}
 			{@const isMine = i === myBinIdxClamped}
 			<div 
-				class="flex-1 rounded-t-[2px] transition-all duration-300 {isMine ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)] z-10 hover:bg-emerald-400' : 'bg-emerald-500/20 hover:bg-emerald-500/40'}"
+				class="flex-1 rounded-t-[2px] transition-all duration-300 {isMine ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)] z-10 hover:bg-emerald-400' : 'bg-emerald-500/30 dark:bg-emerald-500/20 hover:bg-emerald-500/50 dark:hover:bg-emerald-500/40'}"
 				style="height: {Math.max(heightPct, 2)}%"
 				title="{count} envíos en ~{Math.floor(minR + i * binWidth)}ms"
 			></div>
@@ -73,7 +73,7 @@
 	</div>
 	
 	<!-- X axis labels -->
-	<div class="flex justify-between text-xs text-zinc-500 mt-2 px-1 border-t border-zinc-800 pt-2">
+	<div class="flex justify-between text-xs text-zinc-500 mt-2 px-1 border-t border-zinc-200 dark:border-zinc-800 pt-2">
 		<span>{Math.floor(minR)}ms</span>
 		<span>{Math.floor(minR + paddedRange / 2)}ms</span>
 		<span>{Math.floor(paddedMax)}ms</span>

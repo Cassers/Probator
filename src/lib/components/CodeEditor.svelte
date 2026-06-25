@@ -14,6 +14,7 @@
 	import { StreamLanguage } from '@codemirror/language';
 	import { csharp } from '@codemirror/legacy-modes/mode/clike';
 	import { ruby } from '@codemirror/legacy-modes/mode/ruby';
+	import { isDark } from '$lib/theme';
 
 	let {
 		value = $bindable(''),
@@ -24,6 +25,10 @@
 	let host: HTMLDivElement;
 	let view: EditorView;
 	const langCompartment = new Compartment();
+	const themeCompartment = new Compartment();
+
+	// oneDark en modo oscuro; tema por defecto de CodeMirror (claro) en modo claro.
+	const themeExt = () => (isDark() ? oneDark : []);
 
 	function langExtension(l: string) {
 		switch (l) {
@@ -56,7 +61,7 @@
 				extensions: [
 					basicSetup,
 					keymap.of([...defaultKeymap, indentWithTab]),
-					oneDark,
+					themeCompartment.of(themeExt()),
 					EditorView.editable.of(!readonly),
 					langCompartment.of(langExtension(lang)),
 					EditorView.updateListener.of((u) => {
@@ -65,7 +70,17 @@
 				]
 			})
 		});
-		return () => view?.destroy();
+
+		// Sigue el tema de la app (toggle de la clase `dark` en <html>).
+		const obs = new MutationObserver(() => {
+			view?.dispatch({ effects: themeCompartment.reconfigure(themeExt()) });
+		});
+		obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+		return () => {
+			obs.disconnect();
+			view?.destroy();
+		};
 	});
 
 	// Swap language highlighting without losing the document.
@@ -83,4 +98,4 @@
 	});
 </script>
 
-<div bind:this={host} class="h-full overflow-auto rounded-md border border-zinc-800 text-sm"></div>
+<div bind:this={host} class="h-full overflow-auto rounded-md border border-zinc-200 dark:border-zinc-800 text-sm"></div>

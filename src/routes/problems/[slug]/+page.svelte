@@ -198,17 +198,17 @@
 					</div>
 					
 					<div class="mb-4 flex items-center gap-4 rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-3">
-						<div class="text-lg font-bold {selectedSubmission.verdict === 'Accepted' ? 'text-emerald-400' : 'text-rose-400'}">
+						<div class="text-lg font-bold {selectedSubmission.verdict === 'Accepted' ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}">
 							{selectedSubmission.verdict}
 						</div>
-						<div class="flex gap-4 text-sm text-zinc-400">
-							<div>Runtime: <span class="text-white">{selectedSubmission.runtimeMs ?? 0} ms</span></div>
-							<div>Casos: <span class="text-white">{selectedSubmission.passedCount} / {selectedSubmission.totalCount}</span></div>
-							<div>Lenguaje: <span class="text-white">{selectedSubmission.language}</span></div>
+						<div class="flex gap-4 text-sm text-zinc-600 dark:text-zinc-400">
+							<div>Runtime: <span class="text-zinc-900 dark:text-white">{selectedSubmission.runtimeMs ?? 0} ms</span></div>
+							<div>Casos: <span class="text-zinc-900 dark:text-white">{selectedSubmission.passedCount} / {selectedSubmission.totalCount}</span></div>
+							<div>Lenguaje: <span class="text-zinc-900 dark:text-white">{selectedSubmission.language}</span></div>
 						</div>
 					</div>
 
-					<div class="h-[400px] rounded border border-zinc-200 dark:border-zinc-800 bg-[#282c34] mb-4">
+					<div class="h-[400px] rounded border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#282c34] mb-4">
 						<CodeEditor value={selectedSubmission.sourceCode} lang={getLanguage(selectedSubmission.language)?.cm} readonly={true} />
 					</div>
 
@@ -239,13 +239,13 @@
 											class="cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
 											onclick={() => selectedSubmission = sub}
 										>
-											<td class="p-3 font-medium {sub.verdict === 'Accepted' ? 'text-emerald-400' : 'text-rose-400'}">
+											<td class="p-3 font-medium {sub.verdict === 'Accepted' ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}">
 												{sub.verdict}
 											</td>
 											<td class="p-3 text-zinc-700 dark:text-zinc-300">
-												<span class="rounded bg-zinc-800 px-2 py-0.5 text-xs">{sub.language}</span>
+												<span class="rounded bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 px-2 py-0.5 text-xs">{sub.language}</span>
 											</td>
-											<td class="p-3 text-zinc-400">{sub.runtimeMs ?? 0} ms</td>
+											<td class="p-3 text-zinc-600 dark:text-zinc-400">{sub.runtimeMs ?? 0} ms</td>
 											<td class="p-3 text-xs text-zinc-500">{new Date(sub.createdAt).toLocaleString()}</td>
 										</tr>
 									{/each}
@@ -284,7 +284,7 @@
 		</div>
 
 		{#if errorMsg}
-			<div class="rounded border border-rose-800 bg-rose-950/50 p-3 text-sm text-rose-300">
+			<div class="rounded border border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-300 p-3 text-sm">
 				{errorMsg}
 			</div>
 		{/if}
@@ -292,8 +292,8 @@
 		{#if result}
 			<div
 				class="rounded border p-3 text-sm {accepted
-					? 'border-emerald-800 bg-emerald-950/40 text-emerald-300'
-					: 'border-amber-800 bg-amber-950/40 text-amber-300'}"
+					? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
+					: 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300'}"
 			>
 				<div class="flex items-center justify-between font-semibold">
 					<span>{result.verdict}</span>
@@ -311,12 +311,12 @@
 				{#if result.cases.some((c) => c.isSample)}
 					<div class="mt-3 space-y-2">
 						{#each result.cases.filter((c) => c.isSample) as c (c.ordinal)}
-							<div class="rounded bg-zinc-50 dark:bg-zinc-900 p-2 text-xs">
-								<div class="mb-1 {c.passed ? 'text-emerald-400' : 'text-rose-400'}">
+							<div class="rounded bg-white dark:bg-zinc-900 p-2 text-xs">
+								<div class="mb-1 {c.passed ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}">
 									Ejemplo {c.ordinal + 1}: {c.status}
 								</div>
 								{#if !c.passed}
-									<div class="grid grid-cols-2 gap-2 text-zinc-400">
+									<div class="grid grid-cols-2 gap-2 text-zinc-600 dark:text-zinc-400">
 										<div>
 											<div class="text-zinc-500">Esperado</div>
 											<pre class="whitespace-pre-wrap">{c.expectedOutput}</pre>
