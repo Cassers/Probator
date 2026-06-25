@@ -347,29 +347,104 @@
 {#if showLoginModal}
 	<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
 	<div
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-md"
 		onclick={() => (showLoginModal = false)}
 	>
 		<div
-			class="w-full max-w-sm rounded-lg border border-zinc-200 bg-white p-6 text-center shadow-xl dark:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-50 dark:bg-zinc-900"
+			class="login-card relative w-full max-w-sm overflow-hidden rounded-2xl border border-emerald-400/25 bg-gradient-to-b from-zinc-900/95 to-zinc-950/95 text-center shadow-[0_0_70px_-12px_rgba(16,185,129,0.5)]"
 			onclick={(e) => e.stopPropagation()}
 		>
-			<h3 class="text-lg font-semibold">Inicia sesión para enviar</h3>
-			<p class="mt-1 mb-5 text-sm text-zinc-500">
-				Necesitas tu cuenta de Discord para enviar soluciones y guardar tu progreso.
-			</p>
-			<a
-				href="/auth/discord?next={encodeURIComponent(page.url.pathname)}"
-				class="flex items-center justify-center gap-2 rounded bg-[#5865F2] px-4 py-2 text-sm font-medium text-white hover:bg-[#4752c4]"
-			>
-				<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-					<path d="M20.317 4.369A19.79 19.79 0 0 0 16.558 3c-.2.36-.43.84-.59 1.23a18.27 18.27 0 0 0-3.937 0A12.6 12.6 0 0 0 11.44 3a19.7 19.7 0 0 0-3.76 1.37C3.92 8.06 3.06 11.64 3.3 15.17a19.9 19.9 0 0 0 6.07 3.08c.49-.67.93-1.38 1.3-2.13-.71-.27-1.39-.6-2.03-.99.17-.13.34-.26.5-.4a14.2 14.2 0 0 0 12.12 0c.16.14.33.27.5.4-.64.39-1.32.72-2.03.99.37.75.81 1.46 1.3 2.13a19.9 19.9 0 0 0 6.07-3.08c.28-4.09-.74-7.64-3.08-10.8ZM9.55 13.6c-.97 0-1.77-.9-1.77-2s.78-2 1.77-2 1.78.9 1.77 2c0 1.1-.79 2-1.77 2Zm4.9 0c-.97 0-1.77-.9-1.77-2s.78-2 1.77-2 1.78.9 1.77 2c0 1.1-.78 2-1.77 2Z" />
-				</svg>
-				Entrar con Discord
-			</a>
-			<button onclick={() => (showLoginModal = false)} class="mt-3 text-xs text-zinc-500 hover:text-zinc-400">
-				Cancelar
-			</button>
+			<!-- glow + grid decorativos -->
+			<div class="login-glow pointer-events-none absolute -inset-24 -z-10"></div>
+			<div class="login-grid pointer-events-none absolute inset-0"></div>
+
+			<div class="relative p-7">
+				<div class="mx-auto mb-6 h-px w-2/3 bg-gradient-to-r from-transparent via-emerald-400/80 to-transparent"></div>
+
+				<div class="mb-5 flex justify-center">
+					<div class="login-orb flex h-14 w-14 items-center justify-center rounded-full border border-emerald-400/40 bg-emerald-500/10 text-emerald-300">
+						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<path d="m4 17 6-6-6-6" /><path d="M12 19h8" />
+						</svg>
+					</div>
+				</div>
+
+				<h3 class="bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300 bg-clip-text text-xl font-semibold tracking-tight text-transparent">
+					Inicia sesión para enviar
+				</h3>
+				<p class="mx-auto mt-2 mb-6 max-w-xs text-sm text-zinc-400">
+					Conecta tu cuenta de Discord para enviar soluciones y guardar tu progreso.
+				</p>
+
+				<a
+					href="/auth/discord?next={encodeURIComponent(page.url.pathname)}"
+					class="login-discord group relative flex items-center justify-center gap-2 overflow-hidden rounded-lg bg-[#5865F2] px-4 py-2.5 text-sm font-medium text-white shadow-[0_0_22px_-4px_rgba(88,101,242,0.75)] transition-shadow hover:shadow-[0_0_30px_-2px_rgba(88,101,242,0.95)]"
+				>
+					<span class="login-sheen pointer-events-none absolute inset-0 -translate-x-full"></span>
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+						<path d="M20.317 4.369A19.79 19.79 0 0 0 16.558 3c-.2.36-.43.84-.59 1.23a18.27 18.27 0 0 0-3.937 0A12.6 12.6 0 0 0 11.44 3a19.7 19.7 0 0 0-3.76 1.37C3.92 8.06 3.06 11.64 3.3 15.17a19.9 19.9 0 0 0 6.07 3.08c.49-.67.93-1.38 1.3-2.13-.71-.27-1.39-.6-2.03-.99.17-.13.34-.26.5-.4a14.2 14.2 0 0 0 12.12 0c.16.14.33.27.5.4-.64.39-1.32.72-2.03.99.37.75.81 1.46 1.3 2.13a19.9 19.9 0 0 0 6.07-3.08c.28-4.09-.74-7.64-3.08-10.8ZM9.55 13.6c-.97 0-1.77-.9-1.77-2s.78-2 1.77-2 1.78.9 1.77 2c0 1.1-.79 2-1.77 2Zm4.9 0c-.97 0-1.77-.9-1.77-2s.78-2 1.77-2 1.78.9 1.77 2c0 1.1-.78 2-1.77 2Z" />
+					</svg>
+					Entrar con Discord
+				</a>
+				<button onclick={() => (showLoginModal = false)} class="mt-4 text-xs text-zinc-500 transition-colors hover:text-zinc-300">
+					Cancelar
+				</button>
+			</div>
 		</div>
 	</div>
 {/if}
+
+<style>
+	.login-card {
+		animation: login-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+	}
+	/* glow neón que respira detrás de la tarjeta */
+	.login-glow {
+		background: radial-gradient(
+			circle at 50% 0%,
+			rgba(16, 185, 129, 0.35),
+			rgba(6, 182, 212, 0.18) 35%,
+			transparent 70%
+		);
+		animation: login-pulse 4s ease-in-out infinite;
+	}
+	/* rejilla técnica sutil */
+	.login-grid {
+		background-image:
+			linear-gradient(rgba(16, 185, 129, 0.06) 1px, transparent 1px),
+			linear-gradient(90deg, rgba(16, 185, 129, 0.06) 1px, transparent 1px);
+		background-size: 22px 22px;
+		mask-image: radial-gradient(circle at 50% 40%, black, transparent 75%);
+	}
+	/* anillo del icono que pulsa */
+	.login-orb {
+		box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45);
+		animation: login-orb 2.6s ease-in-out infinite;
+	}
+	/* destello que cruza el botón al hacer hover */
+	.login-sheen {
+		background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
+	}
+	.login-discord:hover .login-sheen {
+		animation: login-sheen 0.8s ease;
+	}
+	@keyframes login-in {
+		from { opacity: 0; transform: translateY(12px) scale(0.96); }
+		to { opacity: 1; transform: translateY(0) scale(1); }
+	}
+	@keyframes login-pulse {
+		0%, 100% { opacity: 0.6; transform: scale(1); }
+		50% { opacity: 1; transform: scale(1.08); }
+	}
+	@keyframes login-orb {
+		0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+		50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+	}
+	@keyframes login-sheen {
+		to { transform: translateX(100%); }
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.login-card, .login-glow, .login-orb { animation: none; }
+		.login-discord:hover .login-sheen { animation: none; }
+	}
+</style>

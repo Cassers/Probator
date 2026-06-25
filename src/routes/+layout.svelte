@@ -48,7 +48,7 @@
 				{:else if data.discordEnabled}
 					<a
 						href="/auth/discord?next={encodeURIComponent(page.url.pathname + page.url.search)}"
-						class="flex items-center gap-2 rounded bg-[#5865F2] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#4752c4]"
+						class="flex items-center gap-2 rounded-lg bg-[#5865F2] px-3 py-1.5 text-sm font-medium text-white shadow-[0_0_18px_-5px_rgba(88,101,242,0.8)] transition-all hover:bg-[#4752c4] hover:shadow-[0_0_24px_-3px_rgba(88,101,242,0.95)]"
 					>
 						<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
 							<path d="M20.317 4.369A19.79 19.79 0 0 0 16.558 3c-.2.36-.43.84-.59 1.23a18.27 18.27 0 0 0-3.937 0A12.6 12.6 0 0 0 11.44 3a19.7 19.7 0 0 0-3.76 1.37C3.92 8.06 3.06 11.64 3.3 15.17a19.9 19.9 0 0 0 6.07 3.08c.49-.67.93-1.38 1.3-2.13-.71-.27-1.39-.6-2.03-.99.17-.13.34-.26.5-.4a14.2 14.2 0 0 0 12.12 0c.16.14.33.27.5.4-.64.39-1.32.72-2.03.99.37.75.81 1.46 1.3 2.13a19.9 19.9 0 0 0 6.07-3.08c.28-4.09-.74-7.64-3.08-10.8ZM9.55 13.6c-.97 0-1.77-.9-1.77-2s.78-2 1.77-2 1.78.9 1.77 2c0 1.1-.79 2-1.77 2Zm4.9 0c-.97 0-1.77-.9-1.77-2s.78-2 1.77-2 1.78.9 1.77 2c0 1.1-.78 2-1.77 2Z" />
